@@ -1,0 +1,30 @@
+syntax = "proto3";
+package dds;
+
+service DDS {
+    // Given a key and a value, stores the value string under the key
+    rpc StoreString (StoreStringRequest) returns (SuccessBool);
+    // Loads a string from the key passed in
+    rpc LoadString (LoadStringRequest) returns (LoadStringReply);
+}
+
+message StoreStringRequest {
+    // Stores a value string from the key passed in
+    string key = 1;
+    string value = 2;
+}
+
+message LoadStringRequest {
+    // Loads a string from the key passed in
+    string key = 1;
+}
+
+message SuccessBool {
+    // True iff success
+    bool success = 1;
+}
+
+message LoadStringReply {
+    // Loads a string from the key passed in
+    string value = 1;
+}
