@@ -7,11 +7,16 @@ edition = "2021"
 name = "dds-server"
 path = "src/server.rs"
 
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
 #[[bin]] # Bin to run the HelloWorld gRPC client
 #name = "dds-client"
 #path = "src/client.rs"
 
 [dependencies]
+openssl = "0.10.38"
 tonic = "0.6"
 prost = "0.9"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
