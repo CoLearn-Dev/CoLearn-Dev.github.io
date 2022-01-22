@@ -9,6 +9,7 @@ use dds::{LoadStringReply, LoadStringRequest, StoreStringRequest, SuccessBool};
 use std::sync::Mutex;
 
 use once_cell::sync::OnceCell;
+use tonic::transport::ServerTlsConfig;
 
 pub mod dds {
     tonic::include_proto!("dds");
@@ -73,10 +74,28 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     MAP.set(Mutex::new(HashMap::<String, Vec<u8>>::new()))
         .unwrap();
 
-    let addr = "[::1]:50051".parse()?;
+    let addr = "127.0.0.1:8080".parse()?;
     let service = MyService::default();
 
+    /* TLS */
+    // reading cert and key of server from disk
+    let cert = include_str!("../cfssl/pd-server.pem");
+    let key = include_str!("../cfssl/pd-server-key.pem");
+    // creating identity from cert and key
+    let server_identity = tonic::transport::Identity::from_pem(cert.as_bytes(), key.as_bytes());
+
+    // https://developers.cloudflare.com/cloudflare-one/identity/devices/mutual-tls-authentication
+    let client_ca_cert = tokio::fs::read("cfssl/ca.pem").await?;
+    let client_ca_cert = tonic::transport::Certificate::from_pem(client_ca_cert);
+
+    // creating tls config
+    let tls = ServerTlsConfig::new()
+        .identity(server_identity)
+        .client_ca_root(client_ca_cert);
+
     Server::builder()
+        // .tls_config(ServerTlsConfig::new().identity(server_identity))?
+        .tls_config(tls)?
         .add_service(DdsServer::new(service))
         .serve(addr)
         .await?;
