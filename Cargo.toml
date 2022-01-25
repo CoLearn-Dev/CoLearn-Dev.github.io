@@ -16,6 +16,8 @@ path = "src/main.rs"
 #path = "src/client.rs"
 
 [dependencies]
+serde = "1.0"
+jsonwebtoken = "7.2.0"
 openssl = "0.10.38"
 tonic = { version = "0.6", features = ["tls"] }
 prost = "0.9"
