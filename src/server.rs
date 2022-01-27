@@ -36,7 +36,10 @@ impl Dds for MyService {
         request: Request<StoreStringRequest>,
     ) -> Result<Response<SuccessBool>, Status> {
         println!("Got a request: {:?}", request);
-        println!("The role is: {}", request.metadata().get("role").unwrap().to_str().unwrap());
+        println!(
+            "The role is: {}",
+            request.metadata().get("role").unwrap().to_str().unwrap()
+        );
         let body: StoreStringRequest = request.into_inner();
         let key: String = body.key;
         let value: String = body.value;
@@ -58,7 +61,10 @@ impl Dds for MyService {
         request: Request<LoadStringRequest>,
     ) -> Result<Response<LoadStringReply>, Status> {
         println!("Got a request: {:?}", request);
-        println!("The role is: {}", request.metadata().get("role").unwrap().to_str().unwrap());
+        println!(
+            "The role is: {}",
+            request.metadata().get("role").unwrap().to_str().unwrap()
+        );
         let body: LoadStringRequest = request.into_inner();
         let key: String = body.key;
 
@@ -134,14 +140,14 @@ fn check_auth(req: Request<()>) -> Result<Request<()>, Status> {
     ) {
         Ok(token_data) => token_data,
         Err(e) => {
-
             println!("Debug: wrong secret. {}", e);
-            return Err(Status::unauthenticated("Wrong secret (password)"))
-        },
+            return Err(Status::unauthenticated("Wrong secret (password)"));
+        }
     };
 
     let mut req = req;
-    req.metadata_mut().insert("role", token.claims.role.parse().unwrap());
+    req.metadata_mut()
+        .insert("role", token.claims.role.parse().unwrap());
 
     Ok(req)
 }
