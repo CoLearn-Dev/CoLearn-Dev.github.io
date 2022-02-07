@@ -6,6 +6,7 @@ service DDS {
     rpc StoreString (StoreStringRequest) returns (SuccessBool);
     // Loads a string from the key passed in
     rpc LoadString (LoadStringRequest) returns (LoadStringReply);
+    rpc CreateNewUser (CreateNewUserRequest) returns (CreateNewUserReply);
 }
 
 message StoreStringRequest {
@@ -27,4 +28,15 @@ message SuccessBool {
 message LoadStringReply {
     // Loads a string from the key passed in
     string value = 1;
+}
+
+message CreateNewUserRequest {
+    // Expire Time
+    int64 expire_time = 1;
+}
+
+message CreateNewUserReply {
+    bytes secret_key = 1;
+    bytes public_key = 2;
+    string token = 3;
 }
