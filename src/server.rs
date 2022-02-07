@@ -8,7 +8,7 @@ use tonic::{transport::Server, Request, Response, Status};
 use dds::dds_server::{Dds, DdsServer};
 use dds::{
     CreateNewUserReply, CreateNewUserRequest, LoadStringReply, LoadStringRequest,
-    StoreStringRequest, SuccessBool,
+    RefreshTokenRequest, StoreStringRequest, SuccessBool, TokenReply,
 };
 
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
@@ -127,6 +127,35 @@ impl Dds for MyService {
             public_key: public_key.to_vec(),
             token,
         };
+        Ok(Response::new(reply))
+    }
+
+    async fn refresh_token(
+        &self,
+        request: Request<RefreshTokenRequest>,
+    ) -> Result<Response<TokenReply>, Status> {
+        println!("Got a request: {:?}", request);
+        let secret = JWT_SECRET.get().unwrap();
+        let body: RefreshTokenRequest = request.into_inner();
+        let token = body.token;
+        let token = jsonwebtoken::decode::<Claims>(
+            &token,
+            &jsonwebtoken::DecodingKey::from_secret(secret),
+            &jsonwebtoken::Validation::default(),
+        )
+        .unwrap();
+        let token = token.claims;
+        let token = jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &Claims {
+                role: token.role,
+                user_id: token.user_id,
+                exp: body.expire_time,
+            },
+            &jsonwebtoken::EncodingKey::from_secret(secret),
+        )
+        .unwrap();
+        let reply = TokenReply { token };
         Ok(Response::new(reply))
     }
 }

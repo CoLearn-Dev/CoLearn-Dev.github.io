@@ -7,6 +7,7 @@ service DDS {
     // Loads a string from the key passed in
     rpc LoadString (LoadStringRequest) returns (LoadStringReply);
     rpc CreateNewUser (CreateNewUserRequest) returns (CreateNewUserReply);
+    rpc RefreshToken (RefreshTokenRequest) returns (TokenReply);
 }
 
 message StoreStringRequest {
@@ -39,4 +40,13 @@ message CreateNewUserReply {
     bytes secret_key = 1;
     bytes public_key = 2;
     string token = 3;
+}
+
+message RefreshTokenRequest {
+    string token = 1;
+    int64 expire_time = 2;
+}
+
+message TokenReply {
+    string token = 1;
 }
