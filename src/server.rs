@@ -7,21 +7,20 @@ use tonic::{transport::Server, Request, Response, Status};
 // This is because tonic's parser thinks the service name DDS is one single word in dds.proto
 use dds::dds_server::{Dds, DdsServer};
 use dds::{
-    CreateNewUserReply, CreateNewUserRequest, LoadStringReply, LoadStringRequest,
-    RefreshTokenRequest, StoreStringRequest, SuccessBool, TokenReply,
-    ImportNewUserRequest
+    CreateNewUserReply, CreateNewUserRequest, ImportNewUserRequest, LoadStringReply,
+    LoadStringRequest, RefreshTokenRequest, StoreStringRequest, SuccessBool, TokenReply,
 };
 
+use chrono::TimeZone;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use std::sync::Mutex;
-use chrono::TimeZone;
+use std::sync::{Arc, Mutex};
 
 use once_cell::sync::OnceCell;
 use openssl::sha::sha256;
 use rand::RngCore;
 use secp256k1::ecdsa::Signature;
-use secp256k1::{Error, Message, PublicKey};
+use secp256k1::{Error, Message, PublicKey, Secp256k1};
 use tonic::metadata::MetadataMap;
 use tonic::transport::ServerTlsConfig;
 
@@ -108,7 +107,7 @@ impl Dds for MyService {
         let body: CreateNewUserRequest = request.into_inner();
         let expire_time: i64 = body.expire_time;
         let mut rng = secp256k1::rand::thread_rng();
-        let secp = secp256k1::Secp256k1::new();
+        let secp = Secp256k1::new();
         let (secret_key, public_key) = secp.generate_keypair(&mut rng);
         let secret_key = secret_key.serialize_secret();
         let public_key = public_key.serialize();
@@ -171,7 +170,9 @@ impl Dds for MyService {
         let public_key: PublicKey = match PublicKey::from_slice(&public_key_vec) {
             Ok(pk) => pk,
             Err(e) => {
-                return Err(Status::invalid_argument("The public key could not be decoded in compressed serialized format."))
+                return Err(Status::invalid_argument(
+                    "The public key could not be decoded in compressed serialized format.",
+                ))
             }
         };
 
@@ -181,13 +182,16 @@ impl Dds for MyService {
         let signature = match Signature::from_compact(&signature) {
             Ok(sig) => sig,
             Err(e) => {
-                return Err(Status::invalid_argument("The signature could not be decoded in EDCSA"))
+                return Err(Status::invalid_argument(
+                    "The signature could not be decoded in EDCSA",
+                ))
             }
         };
 
-
-        if chrono::Utc.timestamp(current_timestamp, 0)
-            .signed_duration_since(chrono::Utc::now()).num_hours()
+        if chrono::Utc
+            .timestamp(current_timestamp, 0)
+            .signed_duration_since(chrono::Utc::now())
+            .num_hours()
             > 48
         {
             return Err(Status::unauthenticated(
@@ -196,14 +200,10 @@ impl Dds for MyService {
         }
         public_key_vec.extend_from_slice(&current_timestamp.to_le_bytes());
         let message = Message::from_slice(&sha256(&public_key_vec)).unwrap();
-        let secp = secp256k1::Secp256k1::new();
-        match secp.verify_ecdsa(
-            &message,
-            &signature,
-            &public_key,
-        ) {
+        let secp = Secp256k1::new();
+        match secp.verify_ecdsa(&message, &signature, &public_key) {
             Ok(_) => {}
-            Err(e) => {return Err(Status::invalid_argument("Invalid Signature"))}
+            Err(e) => return Err(Status::invalid_argument("Invalid Signature")),
         }
         let token = jsonwebtoken::encode(
             &jsonwebtoken::Header::default(),
@@ -221,13 +221,15 @@ impl Dds for MyService {
 }
 
 impl MyService {
-    pub fn check_admin_token(request_metadata:&MetadataMap) -> Result<(), Status> {
+    pub fn check_admin_token(request_metadata: &MetadataMap) -> Result<(), Status> {
         let role = request_metadata.get("role").unwrap().to_str().unwrap();
         if role != "admin" {
             return Err(Status::permission_denied(
                 "You need to be an admin to create a new user.",
             ));
-        } else { Ok(()) }
+        } else {
+            Ok(())
+        }
     }
 }
 

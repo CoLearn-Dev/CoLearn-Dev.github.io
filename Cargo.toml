@@ -11,9 +11,9 @@ path = "src/server.rs"
 name = "main"
 path = "src/main.rs"
 
-#[[bin]] # Bin to run the HelloWorld gRPC client
-#name = "dds-client"
-#path = "src/client.rs"
+[[bin]] # Bin to run the HelloWorld gRPC client
+name = "dds-client"
+path = "src/client.rs"
 
 [dependencies]
 base64 = "0.13.0"
