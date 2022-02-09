@@ -9,14 +9,20 @@ use dds::dds_server::{Dds, DdsServer};
 use dds::{
     CreateNewUserReply, CreateNewUserRequest, LoadStringReply, LoadStringRequest,
     RefreshTokenRequest, StoreStringRequest, SuccessBool, TokenReply,
+    ImportNewUserRequest
 };
 
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::sync::Mutex;
+use chrono::TimeZone;
 
 use once_cell::sync::OnceCell;
+use openssl::sha::sha256;
 use rand::RngCore;
+use secp256k1::ecdsa::Signature;
+use secp256k1::{Error, Message, PublicKey};
+use tonic::metadata::MetadataMap;
 use tonic::transport::ServerTlsConfig;
 
 pub mod dds {
@@ -98,13 +104,7 @@ impl Dds for MyService {
         &self,
         request: Request<CreateNewUserRequest>,
     ) -> Result<Response<CreateNewUserReply>, Status> {
-        println!("Got a request: {:?}", request);
-        let role = request.metadata().get("role").unwrap().to_str().unwrap();
-        if role != "admin" {
-            return Err(Status::permission_denied(
-                "You need to be an admin to create a new user.",
-            ));
-        }
+        Self::check_admin_token(request.metadata())?;
         let body: CreateNewUserRequest = request.into_inner();
         let expire_time: i64 = body.expire_time;
         let mut rng = secp256k1::rand::thread_rng();
@@ -135,6 +135,7 @@ impl Dds for MyService {
         request: Request<RefreshTokenRequest>,
     ) -> Result<Response<TokenReply>, Status> {
         println!("Got a request: {:?}", request);
+        Self::check_admin_token(request.metadata())?;
         let secret = JWT_SECRET.get().unwrap();
         let body: RefreshTokenRequest = request.into_inner();
         let token = body.token;
@@ -157,6 +158,76 @@ impl Dds for MyService {
         .unwrap();
         let reply = TokenReply { token };
         Ok(Response::new(reply))
+    }
+
+    // UNTESTED, need client side to test, haven't written client side yet
+    async fn import_new_user(
+        &self,
+        request: Request<ImportNewUserRequest>,
+    ) -> Result<Response<TokenReply>, Status> {
+        Self::check_admin_token(request.metadata())?;
+        let body: ImportNewUserRequest = request.into_inner();
+        let mut public_key_vec: Vec<u8> = body.public_key;
+        let public_key: PublicKey = match PublicKey::from_slice(&public_key_vec) {
+            Ok(pk) => pk,
+            Err(e) => {
+                return Err(Status::invalid_argument("The public key could not be decoded in compressed serialized format."))
+            }
+        };
+
+        let current_timestamp: i64 = body.current_timestamp;
+        let expire_time = body.expire_time;
+        let signature: Vec<u8> = body.signature;
+        let signature = match Signature::from_compact(&signature) {
+            Ok(sig) => sig,
+            Err(e) => {
+                return Err(Status::invalid_argument("The signature could not be decoded in EDCSA"))
+            }
+        };
+
+
+        if chrono::Utc.timestamp(current_timestamp, 0)
+            .signed_duration_since(chrono::Utc::now()).num_hours()
+            > 48
+        {
+            return Err(Status::unauthenticated(
+                "the timestamp is more than 48 hours before the current time",
+            ));
+        }
+        public_key_vec.extend_from_slice(&current_timestamp.to_le_bytes());
+        let message = Message::from_slice(&sha256(&public_key_vec)).unwrap();
+        let secp = secp256k1::Secp256k1::new();
+        match secp.verify_ecdsa(
+            &message,
+            &signature,
+            &public_key,
+        ) {
+            Ok(_) => {}
+            Err(e) => {return Err(Status::invalid_argument("Invalid Signature"))}
+        }
+        let token = jsonwebtoken::encode(
+            &jsonwebtoken::Header::default(),
+            &Claims {
+                role: "user".to_string(),
+                user_id: base64::encode(&public_key.serialize()),
+                exp: expire_time,
+            },
+            &jsonwebtoken::EncodingKey::from_secret(JWT_SECRET.get().unwrap()),
+        )
+        .unwrap();
+        let reply = TokenReply { token };
+        Ok(Response::new(reply))
+    }
+}
+
+impl MyService {
+    pub fn check_admin_token(request_metadata:&MetadataMap) -> Result<(), Status> {
+        let role = request_metadata.get("role").unwrap().to_str().unwrap();
+        if role != "admin" {
+            return Err(Status::permission_denied(
+                "You need to be an admin to create a new user.",
+            ));
+        } else { Ok(()) }
     }
 }
 
