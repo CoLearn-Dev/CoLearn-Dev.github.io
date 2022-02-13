@@ -19,6 +19,7 @@ path = "src/client.rs"
 base64 = "0.13.0"
 chrono = "0.4.19"
 serde = "1.0"
+thiserror = "1.0.30"
 jsonwebtoken = "7.2.0"
 openssl = "0.10.38"
 tonic = { version = "0.6", features = ["tls"] }
