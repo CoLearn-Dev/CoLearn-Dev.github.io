@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::iter::Successors;
 use std::os::unix::fs::chroot;
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -7,8 +8,10 @@ use tonic::{transport::Server, Request, Response, Status};
 // This is because tonic's parser thinks the service name DDS is one single word in dds.proto
 use crate::dds::dds_server::{Dds, DdsServer};
 use crate::dds::{
-    CreateNewUserReply, CreateNewUserRequest, ImportNewUserRequest, LoadStringReply,
-    LoadStringRequest, RefreshTokenRequest, StoreStringRequest, SuccessBool, TokenReply,
+    CreateEntryRequest, CreateNewUserReply, CreateNewUserRequest, DeleteEntryRequest,
+    ImportNewUserRequest, LoadStringReply, LoadStringRequest, ReadBatchReply, ReadBatchRequest,
+    ReadEntryReply, ReadEntryRequest, ReadKeyListReply, ReadKeyListRequest, RefreshTokenRequest,
+    StoreStringRequest, SuccessBool, TokenReply, UpdateEntryRequest,
 };
 
 use chrono::TimeZone;
@@ -16,6 +19,8 @@ use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 
+use ::dds::storage::common::Storage;
+use ::dds::storage::dummy::DummyStorage;
 use once_cell::sync::OnceCell;
 use openssl::sha::sha256;
 use rand::RngCore;
@@ -23,8 +28,6 @@ use secp256k1::ecdsa::Signature;
 use secp256k1::{Error, Message, PublicKey, Secp256k1};
 use tonic::metadata::MetadataMap;
 use tonic::transport::ServerTlsConfig;
-use ::dds::storage::common::Storage;
-use ::dds::storage::dummy::DummyStorage;
 
 pub mod dds {
     tonic::include_proto!("dds");
@@ -67,7 +70,7 @@ impl Dds for MyService {
         let status = true;
 
         let storage = STORAGE.get().unwrap();
-        storage.create(String::default(), key, &value);
+        storage.create(&String::default(), key, &value);
 
         let reply = SuccessBool {
             success: true.into(),
@@ -90,7 +93,11 @@ impl Dds for MyService {
 
         let status = true;
 
-        let res = STORAGE.get().unwrap().read(String::default(), &key).unwrap();
+        let res = STORAGE
+            .get()
+            .unwrap()
+            .read(&String::default(), &key)
+            .unwrap();
         let value = match res {
             None => return Err(Status::not_found("this key is not found on the server")),
             Some(bytes) => String::from_utf8(bytes.to_vec()).unwrap(),
@@ -221,6 +228,103 @@ impl Dds for MyService {
         let reply = TokenReply { token };
         Ok(Response::new(reply))
     }
+
+    async fn create_entry(
+        &self,
+        request: Request<CreateEntryRequest>,
+    ) -> Result<Response<SuccessBool>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: CreateEntryRequest = request.into_inner();
+        let key: String = body.key;
+        let value: Vec<u8> = body.value;
+        let storage = STORAGE.get().unwrap();
+        storage.create(&user_id, key, &value);
+
+        Ok(Response::new(SuccessBool { success: true }))
+    }
+
+    async fn read_entry(
+        &self,
+        request: Request<ReadEntryRequest>,
+    ) -> Result<Response<ReadEntryReply>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: ReadEntryRequest = request.into_inner();
+        let key: String = body.key;
+        let storage = STORAGE.get().unwrap();
+        let value = storage.read(&user_id, &key);
+        match value {
+            Ok(v) => Ok(Response::new(ReadEntryReply { value: v })),
+            Err(e) => Err(Status::aborted(format!("{}", e))),
+        }
+    }
+
+    async fn update_entry(
+        &self,
+        request: Request<UpdateEntryRequest>,
+    ) -> Result<Response<SuccessBool>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: UpdateEntryRequest = request.into_inner();
+        let key: String = body.key;
+        let value: Vec<u8> = body.value;
+        let storage = STORAGE.get().unwrap();
+        storage.update(&user_id, &key, &value);
+
+        Ok(Response::new(SuccessBool { success: true }))
+    }
+
+    async fn delete_entry(
+        &self,
+        request: Request<DeleteEntryRequest>,
+    ) -> Result<Response<SuccessBool>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: DeleteEntryRequest = request.into_inner();
+        let key: String = body.key;
+        let storage = STORAGE.get().unwrap();
+        storage.delete(&user_id, &key);
+
+        Ok(Response::new(SuccessBool { success: true }))
+    }
+
+    async fn read_key_list(
+        &self,
+        request: Request<ReadKeyListRequest>,
+    ) -> Result<Response<ReadKeyListReply>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: ReadKeyListRequest = request.into_inner();
+        let storage = STORAGE.get().unwrap();
+        let keys = storage.read_key_list(&user_id);
+        match keys {
+            Ok(k) => Ok(Response::new(ReadKeyListReply { keys: k })),
+            Err(e) => Err(Status::aborted(format!("{}", e))),
+        }
+    }
+
+    async fn read_batch(
+        &self,
+        request: Request<ReadBatchRequest>,
+    ) -> Result<Response<ReadBatchReply>, Status> {
+        Self::check_user_token(request.metadata())?;
+        let user_id = Self::get_user_id(request.metadata());
+        let body: ReadBatchRequest = request.into_inner();
+        let keys: Vec<String> = body.keys;
+        let storage = STORAGE.get().unwrap();
+        let values = storage.read_batch(&user_id, keys);
+        let mut res: Vec<ReadEntryReply> = Vec::new();
+        match values {
+            Ok(vec) => {
+                for v in vec {
+                    res.push(ReadEntryReply { value: v });
+                }
+                Ok(Response::new(ReadBatchReply { entries: res }))
+            }
+            Err(e) => Err(Status::aborted(format!("{}", e))),
+        }
+    }
 }
 
 impl MyService {
@@ -228,11 +332,29 @@ impl MyService {
         let role = request_metadata.get("role").unwrap().to_str().unwrap();
         if role != "admin" {
             return Err(Status::permission_denied(
-                "You need to be an admin to create a new user.",
+                "This procedure requires an admin token, which you did not provide.",
             ));
         } else {
             Ok(())
         }
+    }
+    pub fn check_user_token(request_metadata: &MetadataMap) -> Result<(), Status> {
+        let role = request_metadata.get("role").unwrap().to_str().unwrap();
+        if role != "admin" && role != "user" {
+            return Err(Status::permission_denied(
+                "This procedure needs an admin or user token, which you did not provide.",
+            ));
+        } else {
+            Ok(())
+        }
+    }
+    pub fn get_user_id(request_metadata: &MetadataMap) -> String {
+        request_metadata
+            .get("user_id")
+            .unwrap()
+            .to_str()
+            .unwrap()
+            .to_string()
     }
 }
 

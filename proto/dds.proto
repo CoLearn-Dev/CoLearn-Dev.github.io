@@ -9,6 +9,12 @@ service DDS {
     rpc CreateNewUser (CreateNewUserRequest) returns (CreateNewUserReply);
     rpc RefreshToken (RefreshTokenRequest) returns (TokenReply);
     rpc ImportNewUser (ImportNewUserRequest) returns (TokenReply);
+    rpc CreateEntry (CreateEntryRequest) returns (SuccessBool);
+    rpc ReadEntry (ReadEntryRequest) returns (ReadEntryReply);
+    rpc UpdateEntry (UpdateEntryRequest) returns (SuccessBool);
+    rpc DeleteEntry (DeleteEntryRequest) returns (SuccessBool);
+    rpc ReadKeyList (ReadKeyListRequest) returns (ReadKeyListReply);
+    rpc ReadBatch (ReadBatchRequest) returns (ReadBatchReply);
 }
 
 message StoreStringRequest {
@@ -19,6 +25,42 @@ message StoreStringRequest {
 
 message LoadStringRequest {
     // Loads a string from the key passed in
+    string key = 1;
+}
+
+message CreateEntryRequest {
+    string key = 1;
+    bytes value = 2;
+}
+
+message ReadEntryRequest {
+    string key = 1;
+}
+
+message ReadEntryReply {
+    optional bytes value = 1;
+}
+
+message ReadKeyListRequest {}
+
+message ReadKeyListReply {
+    repeated string keys = 1;
+}
+
+message ReadBatchRequest {
+    repeated string keys = 1;
+}
+
+message ReadBatchReply {
+    repeated ReadEntryReply entries = 1;
+}
+
+message UpdateEntryRequest {
+    string key = 1;
+    bytes value = 2;
+}
+
+message DeleteEntryRequest {
     string key = 1;
 }
 
