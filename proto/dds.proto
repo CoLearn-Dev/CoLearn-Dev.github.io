@@ -2,101 +2,95 @@ syntax = "proto3";
 package dds;
 
 service DDS {
-    // Given a key and a value, stores the value string under the key
-    rpc StoreString (StoreStringRequest) returns (SuccessBool);
-    // Loads a string from the key passed in
-    rpc LoadString (LoadStringRequest) returns (LoadStringReply);
-    rpc CreateNewUser (CreateNewUserRequest) returns (CreateNewUserReply);
-    rpc RefreshToken (RefreshTokenRequest) returns (TokenReply);
-    rpc ImportNewUser (ImportNewUserRequest) returns (TokenReply);
-    rpc CreateEntry (CreateEntryRequest) returns (SuccessBool);
-    rpc ReadEntry (ReadEntryRequest) returns (ReadEntryReply);
-    rpc UpdateEntry (UpdateEntryRequest) returns (SuccessBool);
-    rpc DeleteEntry (DeleteEntryRequest) returns (SuccessBool);
-    rpc ReadKeyList (ReadKeyListRequest) returns (ReadKeyListReply);
-    rpc ReadBatch (ReadBatchRequest) returns (ReadBatchReply);
+    // Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp.
+    // Requires user or admin Jwt.
+    rpc RefreshToken (RefreshTokenRequest) returns (Jwt);
+
+    // Generates a JWT from a user with a public/secret key pair.
+    // The generated JWT specify the user's role as a user, contains their user_id, which is a base64 encoding of the provided public key.
+    // Requires admin Jwt.
+    rpc ImportUser (ImportUserRequest) returns (Jwt);
+
+    // Creates an entry in DDS storage.
+    // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc CreateEntry (Entry) returns (Entry);
+
+    // Retrieves entries from DDS storage.\
+    // One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned.
+    // If key_name is nonempty, returns the latest version of the entry with that key name.
+    // This is done by first obtaining the timestamp representing the latest version of the entry,
+    // and then retrieving the entry with that timestamp by including the timestamp in key_path.
+    // If key_path is nonempty, returns the entry with the corresponding key path.
+    // If you're looking for a specific version of an entry, use specify the timestamp inside the `key_path` field.
+    // Requires user or admin JWT.
+    rpc ReadEntries (Entries) returns (Entries);
+
+    // Updates an entry in DDS storage.
+    // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
+    // Creates a new entry with the current timestamp in the key_path field.
+    // Sets the latest entry to current timestamp.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc UpdateEntry (Entry) returns (Entry);
+
+    // Deletes an entry from DDS storage.
+    // Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current
+    // timestamp in the key_path field. Therefore the current timestamp points to nothing.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc DeleteEntry (Entry) returns (Entry);
+
+    // Returns list of entries in DDS storage whose key_path starts with input prefix.
+    // Requires user or admin JWT.
+    rpc ReadKeys (ReadKeysRequest) returns (Entries);
 }
 
-message StoreStringRequest {
-    // Stores a value string from the key passed in
-    string key = 1;
-    string value = 2;
+// JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.
+message Jwt {
+    string jwt = 1;
 }
 
-message LoadStringRequest {
-    // Loads a string from the key passed in
-    string key = 1;
+// An entry in the k-v storage.
+message Entry {
+    // The key name of the entry.
+    string key_name = 1;
+    // The path of this entry. May contain information about the user_id, application_id, key name, and the timestamp of the entry.
+    string key_path = 2;
+    // The payload (value) of the entry.
+    bytes payload = 3;
 }
 
-message CreateEntryRequest {
-    string key = 1;
-    bytes value = 2;
+// A list of entries.
+message Entries {
+    repeated Entry entries = 1;
 }
 
-message ReadEntryRequest {
-    string key = 1;
-}
 
-message ReadEntryReply {
-    optional bytes value = 1;
-}
-
-message ReadKeyListRequest {}
-
-message ReadKeyListReply {
-    repeated string keys = 1;
-}
-
-message ReadBatchRequest {
-    repeated string keys = 1;
-}
-
-message ReadBatchReply {
-    repeated ReadEntryReply entries = 1;
-}
-
-message UpdateEntryRequest {
-    string key = 1;
-    bytes value = 2;
-}
-
-message DeleteEntryRequest {
-    string key = 1;
-}
-
-message SuccessBool {
-    // True iff success
-    bool success = 1;
-}
-
-message LoadStringReply {
-    // Loads a string from the key passed in
-    string value = 1;
-}
-
-message CreateNewUserRequest {
-    // Expire Time
-    int64 expire_time = 1;
-}
-
-message CreateNewUserReply {
-    bytes secret_key = 1;
-    bytes public_key = 2;
-    string token = 3;
-}
-
+// Contains the token to be refreshed and the new expiration time to be set for the generated token.
 message RefreshTokenRequest {
-    string token = 1;
-    int64 expire_time = 2;
+    // The old token to be refreshed.
+    string jwt = 1;
+    // THe new expiration time for the token, in linux timestamp format.
+    int64 expiration_time = 2;
 }
 
-message ImportNewUserRequest {
+// Import a user from an existing public/secret key pair.
+// A signature of the public key concatenated with the current timestamp at the time of signing is required to verify the user's possesion of the secret key and to prevent from replay attacks.
+message ImportUserRequest {
+    // The public key of the user, serialized in compact (default) form.
     bytes public_key = 1;
-    int64 current_timestamp = 2;
+    // Linux timestamp of time of signature, in linux timestamp format.
+    // Te signature should be generated within 10 minutes of the tiem of signature verification
+    int64 signature_timestamp = 2;
+    // The EDCSA compact signature of the public key concatenated with little endian encoding of current time. This serves as a challenge response for the user to prevent from replay attacks.
     bytes signature = 3;
-    int64 expire_time = 4;
+    // The expiration time for the token to be generated, in linux timestamp format.
+    int64 expiration_time = 4;
 }
 
-message TokenReply {
-    string token = 1;
+message ReadKeysRequest {
+    // The prefix of the key_path of the entries to be retrieved.
+    string prefix = 1;
 }
