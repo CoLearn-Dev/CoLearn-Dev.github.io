@@ -77,7 +77,6 @@ trait Storage {
     /// - A::x @ 1
     /// - A::x:y @ 1
     /// - A::x:y @ 2
-    /// A::x:__keys
     /// - A::x:y:z @ 1
     /// list_key("") -> Err
     /// list_key("A") -> Err
