@@ -1,6 +1,6 @@
 /// DDS Storage.
 /// `key_path` is in the following format: `{user_id} :: {key_name} @ {timestamp}`
-trait Storage {
+pub trait Storage {
     /// Create a new entry in the storage. Create inputs a key and a value.
     ///
     /// # Inputs
@@ -12,7 +12,7 @@ trait Storage {
     /// Notice that this `key_path` is the entire key_path with the `@timestamp` suffix, where the timestamp is the time when the entry is created.
     /// # How it works
     /// Inside storage,
-    /// - add entry that maps from `{user_id} :: {key_name}` to current timestamp.
+    /// - add entry that maps from `{user_id} :: {key_name}` to current timestamp. If it already exists, returns error string.
     /// - add entry that maps from `{user_id} :: {key_name} @ {current timestamp}` to `value`.
     /// - append this key to `{longest prefix of key_path whose subsequent character is a ':'}:__keys`
     /// Returns the complete key_path of the new entry, which is `{user_id} :: {key_name} @ {current timestamp}`.
@@ -35,7 +35,6 @@ trait Storage {
     /// This check for one thing: the token subsequent to the last ':' should not start with two underscores '__'.\
     fn read_from_key_paths(
         &self,
-        user_id: &str,
         key_paths: &[String],
     ) -> Result<Vec<Option<Vec<u8>>>, String>;
 
@@ -109,7 +108,7 @@ trait Storage {
     /// - replace entry that maps from `{user_id}::{key_name}` to current timestamp.
     /// - add entry that maps from `{user_id}::{key_name}@{current timestamp}` to `value`.
     /// - append this key to `{longest prefix of key_path_prefix whose subsequent character is a ':'}:__keys`
-    fn update(&self, user_id: &str, key_name: &str, value: &[u8]) -> Result<(), String>;
+    fn update(&self, user_id: &str, key_name: &str, value: &[u8]) -> Result<String, String>;
 
     /// Updates the value of entry corresponding to `key_path_prefix` to `value`.
     ///
@@ -124,5 +123,27 @@ trait Storage {
     /// Doesn't touch the `__keys` vector. Therefore, it's still possible to obtain the entry that just got deleted by calling `list_keys` with `include_history = true`
     /// and seeking the entry with the latest timestamp.
     /// Now `{user_id}::{key_name}@{current timestamp}` maps to nothing. So during read, we know that a delete operation has occurred.
-    fn delete(&self, user_id: &str, key_name: &str) -> Result<(), String>;
+    fn delete(&self, user_id: &str, key_name: &str) -> Result<String, String>;
+}
+
+/// Checks if the input key_path contains two underscores '__' following the last colon ':'.
+pub fn ends_with_reserved_tokens(key_path: &str) -> Result<(), String> {
+    let pos = key_path.rfind(":");
+    let pos: usize = match pos {
+        None => 0,
+        Some(pos) => pos + 1,
+    };
+    if key_path[pos..pos+2] == *"__" {
+        return Err(format!("key_path {} ends with reserved tokens", key_path));
+    }
+    Ok(())
+}
+
+/// Gets the longest prefix of the input string whose subsequent character is a ':'.
+/// If no such prefix exists, return the empty string.
+pub fn get_prefix(key: &str) -> &str {
+    match key.rfind(':') {
+        None => "",
+        Some(pos) => &key[..pos],
+    }
 }

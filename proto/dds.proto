@@ -15,17 +15,19 @@ service DDS {
     // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
     // Requires user or admin JWT.
     // Returns a key_path with current timestamp included.
-    rpc CreateEntry (Entry) returns (Entry);
+    rpc CreateEntry (StorageEntry) returns (StorageEntry);
 
     // Retrieves entries from DDS storage.\
     // One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned.
     // If key_name is nonempty, returns the latest version of the entry with that key name.
     // This is done by first obtaining the timestamp representing the latest version of the entry,
     // and then retrieving the entry with that timestamp by including the timestamp in key_path.
+    // In this case, the key_path field is empty in the returned StorageEntry.
     // If key_path is nonempty, returns the entry with the corresponding key path.
     // If you're looking for a specific version of an entry, use specify the timestamp inside the `key_path` field.
+    // In this case, the key_name field is empty in the returned StorageEntry.
     // Requires user or admin JWT.
-    rpc ReadEntries (Entries) returns (Entries);
+    rpc ReadEntries (StorageEntries) returns (StorageEntries);
 
     // Updates an entry in DDS storage.
     // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
@@ -33,18 +35,18 @@ service DDS {
     // Sets the latest entry to current timestamp.
     // Requires user or admin JWT.
     // Returns a key_path with current timestamp included.
-    rpc UpdateEntry (Entry) returns (Entry);
+    rpc UpdateEntry (StorageEntry) returns (StorageEntry);
 
     // Deletes an entry from DDS storage.
     // Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current
     // timestamp in the key_path field. Therefore the current timestamp points to nothing.
     // Requires user or admin JWT.
     // Returns a key_path with current timestamp included.
-    rpc DeleteEntry (Entry) returns (Entry);
+    rpc DeleteEntry (StorageEntry) returns (StorageEntry);
 
     // Returns list of entries in DDS storage whose key_path starts with input prefix.
     // Requires user or admin JWT.
-    rpc ReadKeys (ReadKeysRequest) returns (Entries);
+    rpc ReadKeys (ReadKeysRequest) returns (StorageEntries);
 }
 
 // JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.
@@ -52,8 +54,8 @@ message Jwt {
     string jwt = 1;
 }
 
-// An entry in the k-v storage.
-message Entry {
+// An entry in the DDS storage.
+message StorageEntry {
     // The key name of the entry.
     string key_name = 1;
     // The path of this entry. May contain information about the user_id, application_id, key name, and the timestamp of the entry.
@@ -63,8 +65,8 @@ message Entry {
 }
 
 // A list of entries.
-message Entries {
-    repeated Entry entries = 1;
+message StorageEntries {
+    repeated StorageEntry entries = 1;
 }
 
 
@@ -93,4 +95,5 @@ message ImportUserRequest {
 message ReadKeysRequest {
     // The prefix of the key_path of the entries to be retrieved.
     string prefix = 1;
+    bool include_history = 2;
 }
