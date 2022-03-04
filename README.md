@@ -1,40 +1,27 @@
 # Decentralized Data Science
 
-## Generate Admin token
+## Generating mTLS certificates
+We use CFSSL for this. Links for some useful tutorials:
+- TLS: https://support.pingcap.com/hc/en-us/articles/360050038113-Create-TLS-Certificates-Using-CFSSL
+- mTLS: https://developers.cloudflare.com/cloudflare-one/identity/devices/mutual-tls-authentication/
+- github: https://github.com/cloudflare/cfssl 
 
-Run `cargo run --bin "dds-server"` and a JWT token in the format "something.something.something" will be printed to the console.
+
+## Starting the server
+
+Run `cargo run --bin "dds-server"` and a JWT token  will be printed to the console.
 This is the admin token.
 
-## Create user
+## Testing the server
 
-With the admin token, you can create a user.
+### Using client
+For testing purposes, the admin token is written to `admin_token.txt` when the server is ran, it is then read by the client when we run `cargo run --bin "dds-client"`.
+### Using grpcurl
 
-```asm
-export ADMIN_JWT_TOKEN="something.something.something"
-```
-
-```
-grpcurl -cacert ./cfssl/ca.pem -cert cfssl/client.pem -key cfssl/client-key.pem -import-path ./proto -proto dds.proto -d '{"expire_time": "1944195035"}' -H 'authorization: ${ADMIN_JWT_TOKEN}' 127.0.0.1:8080 dds.DDS/CreateNewUser
-```
-
-You can adjust the expire timestamp. This timestamp is pretty far away from now.
-
-This will give you a user token in one of the response fields.
-
-You can do other stuff with admin token as well. See code for more details.
-
-## Storage CRUD operations
-
-With the user token, you can do Storage CRUD operations, for example.
+Alternatively, you can use grpcurl to test the server.
 
 ```bash
-export token="something.something.something"
-
-grpcurl -cacert ./cfssl/ca.pem -cert cfssl/client.pem -key cfssl/client-key.pem -import-path ./proto -proto dds.proto -d '{"key": "hi", "value": "eW9v"}' -H "authorization: ${token}" 127.0.0.1:8080 dds.DDS/CreateEntry
-
-grpcurl -cacert ./cfssl/ca.pem -cert cfssl/client.pem -key cfssl/client-key.pem -import-path ./proto -proto dds.proto -d '{"key": "hello", "value": "bmV3"}' -H "authorization: ${token}" 127.0.0.1:8080 dds.DDS/CreateEntry
-
-grpcurl -cacert ./cfssl/ca.pem -cert cfssl/client.pem -key cfssl/client-key.pem -import-path ./proto -proto dds.proto -d '{"keys": "hi", "keys": "hello", "keys": "no"}' -H "authorization: ${token}" 127.0.0.1:8080 dds.DDS/ReadBatch
+grpcurl -cacert ./example-ca-keys/ca.pem -cert example-ca-keys/client.pem -key example-ca-keys/client-key.pem -import-path ./proto -proto dds.proto -d '{"key_name": "hi", "payload": "eW9v"}' -H "authorization: REPLACE_WITH_JWT" 127.0.0.1:8080 dds.DDS/CreateEntry
 ```
 
 

@@ -1,8 +1,8 @@
+use crate::storage::common::{ends_with_reserved_tokens, get_prefix};
 use chrono::Utc;
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use crate::storage::common::{ends_with_reserved_tokens, get_prefix};
 
 static MAP: OnceCell<Mutex<HashMap<String, Vec<u8>>>> = OnceCell::new();
 
@@ -10,8 +10,17 @@ pub struct BasicStorage;
 
 impl BasicStorage {
     pub fn new() -> Self {
-        MAP.set(Mutex::new(HashMap::new())).unwrap();
+        match MAP.set(Mutex::new(HashMap::new())) {
+            Ok(_) => (),
+            Err(_) => println!("BasicStorage is already initialized"),
+        }
         Self {}
+    }
+}
+
+impl Default for BasicStorage {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -26,14 +35,8 @@ impl crate::storage::common::Storage for BasicStorage {
         if map.contains_key(&user_id_key_name) {
             return Err(format!("Key name already exists: {}", user_id_key_name));
         }
-        map.insert(
-            key_path_created.clone(),
-            value.to_vec(),
-        );
-        map.insert(
-            user_id_key_name,
-            timestamp.to_string().into_bytes(),
-        );
+        map.insert(key_path_created.clone(), value.to_vec());
+        map.insert(user_id_key_name, timestamp.to_string().into_bytes());
         let prefix = get_prefix(key_name);
         let keys_directory = format!("{}::{}:__keys", user_id, prefix);
         let contains_key = map.contains_key(&keys_directory);
@@ -41,10 +44,7 @@ impl crate::storage::common::Storage for BasicStorage {
             let v = map.get(&keys_directory).unwrap();
             let mut v: Vec<String> = serde_json::from_slice(v).unwrap();
             v.push(key_path_created.clone());
-            map.insert(
-                keys_directory,
-                serde_json::to_vec(&v).unwrap(),
-            );
+            map.insert(keys_directory, serde_json::to_vec(&v).unwrap());
         } else {
             map.insert(
                 keys_directory,
@@ -66,7 +66,11 @@ impl crate::storage::common::Storage for BasicStorage {
         Ok(result)
     }
 
-    fn read_from_key_names(&self, user_id: &str, key_names: &[String]) -> Result<Vec<Option<Vec<u8>>>, String> {
+    fn read_from_key_names(
+        &self,
+        user_id: &str,
+        key_names: &[String],
+    ) -> Result<Vec<Option<Vec<u8>>>, String> {
         let map = MAP.get().unwrap().lock().unwrap();
         let mut result = Vec::new();
         for key_name in key_names {
@@ -78,7 +82,7 @@ impl crate::storage::common::Storage for BasicStorage {
                 None => {
                     result.push(None);
                     continue;
-                },
+                }
             };
             let timestamp = String::from_utf8(timestamp.to_vec()).unwrap();
             let value = map.get(&format!("{}::{}@{}", user_id, key_name, timestamp));
@@ -97,15 +101,18 @@ impl crate::storage::common::Storage for BasicStorage {
                 if keys.is_empty() || include_history {
                     keys
                 } else {
-                    vec![keys.iter().max_by_key( |k| {
-                        let key = k.as_str();
-                        let mut parts = key.rsplitn(2, '@');
-                        let timestamp = parts.next().unwrap();
-                        let timestamp = timestamp.parse::<i64>().unwrap();
-                        timestamp
-                    }).cloned().unwrap()]
+                    vec![keys
+                        .iter()
+                        .max_by_key(|k| {
+                            let key = k.as_str();
+                            let mut parts = key.rsplitn(2, '@');
+                            let timestamp = parts.next().unwrap();
+                            timestamp.parse::<i64>().unwrap()
+                        })
+                        .cloned()
+                        .unwrap()]
                 }
-            },
+            }
         })
     }
 
@@ -115,14 +122,8 @@ impl crate::storage::common::Storage for BasicStorage {
         let mut map = MAP.get().unwrap().lock().unwrap();
         let key_path_created = format!("{}::{}@{}", user_id, key_name, timestamp);
         let user_id_key_name = format!("{}::{}", user_id, key_name);
-        map.insert(
-            key_path_created.clone(),
-            value.to_vec(),
-        );
-        map.insert(
-            user_id_key_name,
-            timestamp.to_string().into_bytes(),
-        );
+        map.insert(key_path_created.clone(), value.to_vec());
+        map.insert(user_id_key_name, timestamp.to_string().into_bytes());
         let prefix = get_prefix(key_name);
         let keys_directory = format!("{}::{}:__keys", user_id, prefix);
         let contains_key = map.contains_key(&keys_directory);
@@ -130,10 +131,7 @@ impl crate::storage::common::Storage for BasicStorage {
             let v = map.get(&keys_directory).unwrap();
             let mut v: Vec<String> = serde_json::from_slice(v).unwrap();
             v.push(key_path_created.clone());
-            map.insert(
-                keys_directory,
-                serde_json::to_vec(&v).unwrap(),
-            );
+            map.insert(keys_directory, serde_json::to_vec(&v).unwrap());
         } else {
             map.insert(
                 keys_directory,
@@ -149,10 +147,7 @@ impl crate::storage::common::Storage for BasicStorage {
         let timestamp = Utc::now().timestamp();
         let mut map = MAP.get().unwrap().lock().unwrap();
         let user_id_key_name = format!("{}::{}", user_id, key_name);
-        map.insert(
-            user_id_key_name,
-            timestamp.to_string().into_bytes(),
-        );
+        map.insert(user_id_key_name, timestamp.to_string().into_bytes());
         Ok(format!("{}::{}@{}", user_id, key_name, timestamp))
     }
 }

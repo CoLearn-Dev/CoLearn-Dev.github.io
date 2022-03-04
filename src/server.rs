@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::fmt::Debug;
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -10,10 +9,9 @@ use crate::dds::*;
 use chrono::TimeZone;
 use jsonwebtoken::{DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
-use std::sync::{Mutex};
 
-use ::dds::storage::common::Storage;
 use ::dds::storage::basic::BasicStorage;
+use ::dds::storage::common::Storage;
 use once_cell::sync::OnceCell;
 use openssl::sha::sha256;
 use rand::RngCore;
@@ -25,8 +23,6 @@ use tonic::transport::ServerTlsConfig;
 pub mod dds {
     tonic::include_proto!("dds");
 }
-
-static MAP: OnceCell<Mutex<HashMap<String, Vec<u8>>>> = OnceCell::new();
 
 static JWT_SECRET: OnceCell<[u8; 32]> = OnceCell::new();
 
@@ -85,9 +81,10 @@ impl Dds for MyService {
         let public_key: PublicKey = match PublicKey::from_slice(&public_key_vec) {
             Ok(pk) => pk,
             Err(e) => {
-                return Err(Status::invalid_argument(
-                    format!("The public key could not be decoded in compressed serialized format: {:?}", e),
-                ))
+                return Err(Status::invalid_argument(format!(
+                    "The public key could not be decoded in compressed serialized format: {:?}",
+                    e
+                )))
             }
         };
 
@@ -97,9 +94,10 @@ impl Dds for MyService {
         let signature = match Signature::from_compact(&signature) {
             Ok(sig) => sig,
             Err(e) => {
-                return Err(Status::invalid_argument(
-                    format!("The signature could not be decoded in EDCSA: {}", e),
-                ))
+                return Err(Status::invalid_argument(format!(
+                    "The signature could not be decoded in EDCSA: {}",
+                    e
+                )))
             }
         };
 
@@ -118,7 +116,12 @@ impl Dds for MyService {
         let secp = Secp256k1::new();
         match secp.verify_ecdsa(&message, &signature, &public_key) {
             Ok(_) => {}
-            Err(e) => return Err(Status::invalid_argument(format!("Invalid Signature: {}", e.to_string()))),
+            Err(e) => {
+                return Err(Status::invalid_argument(format!(
+                    "Invalid Signature: {}",
+                    e
+                )))
+            }
         }
         let token = jsonwebtoken::encode(
             &jsonwebtoken::Header::default(),
@@ -150,7 +153,7 @@ impl Dds for MyService {
                 key_path,
                 payload: Default::default(),
             })),
-            Err(e) => Err(Status::internal(e.to_string())),
+            Err(e) => Err(Status::internal(e)),
         }
     }
 
@@ -171,7 +174,9 @@ impl Dds for MyService {
             let key_name: String = entry.key_name;
             println!("key_path is {}\n, key_name is {}\n", key_path, key_name);
             if key_path.is_empty() && key_name.is_empty() {
-                return Err(Status::invalid_argument("both key_path and key_name are empty"));
+                return Err(Status::invalid_argument(
+                    "both key_path and key_name are empty",
+                ));
             } else if !key_path.is_empty() && !key_name.is_empty() {
                 return Err(Status::invalid_argument(
                     "both key_path and key_name are not empty",
@@ -187,25 +192,35 @@ impl Dds for MyService {
 
         let payload_returned_from_key_paths = match storage.read_from_key_paths(&key_paths_vec) {
             Ok(entries) => entries,
-            Err(e) => return Err(Status::internal(e.to_string())),
+            Err(e) => return Err(Status::internal(e)),
         };
-        let payload_returned_from_key_names = match storage.read_from_key_names(&user_id, &key_names_vec) {
-            Ok(entries) => entries,
-            Err(e) => return Err(Status::internal(e.to_string())),
-        };
-        println!("payload_returned_from_key_paths is {:?}", payload_returned_from_key_paths);
-        println!("payload_returned_from_key_names is {:?}", payload_returned_from_key_names);
+        let payload_returned_from_key_names =
+            match storage.read_from_key_names(&user_id, &key_names_vec) {
+                Ok(entries) => entries,
+                Err(e) => return Err(Status::internal(e)),
+            };
+        println!(
+            "payload_returned_from_key_paths is {:?}",
+            payload_returned_from_key_paths
+        );
+        println!(
+            "payload_returned_from_key_names is {:?}",
+            payload_returned_from_key_names
+        );
         for (key_path, payload) in key_paths_vec.iter().zip(payload_returned_from_key_paths) {
             entries_vec.push(StorageEntry {
                 key_name: Default::default(),
                 key_path: key_path.to_string(),
                 payload: match payload {
                     Some(payload) => {
-                        println!("payload is {:?}", String::from_utf8(payload.clone()).unwrap());
+                        println!(
+                            "payload is {:?}",
+                            String::from_utf8(payload.clone()).unwrap()
+                        );
                         payload
-                    },
+                    }
                     None => Default::default(),
-                }
+                },
             });
         }
         for (key_name, payload) in key_names_vec.iter().zip(payload_returned_from_key_names) {
@@ -214,11 +229,14 @@ impl Dds for MyService {
                 key_path: Default::default(),
                 payload: match payload {
                     Some(payload) => {
-                        println!("payload is {:?}", String::from_utf8(payload.clone()).unwrap());
+                        println!(
+                            "payload is {:?}",
+                            String::from_utf8(payload.clone()).unwrap()
+                        );
                         payload
-                    },
+                    }
                     None => Default::default(),
-                }
+                },
             });
         }
 
@@ -227,7 +245,9 @@ impl Dds for MyService {
         //     Ok(v) => Ok(Response::new(ReadEntryReply { value: v })),
         //     Err(e) => Err(Status::aborted(format!("{}", e))),
         // }
-        Ok(Response::new(StorageEntries { entries: entries_vec }))
+        Ok(Response::new(StorageEntries {
+            entries: entries_vec,
+        }))
     }
 
     async fn update_entry(
@@ -244,12 +264,12 @@ impl Dds for MyService {
 
         let key_path = match key_path {
             Ok(key_path) => key_path,
-            Err(e) => return Err(Status::internal(e.to_string())),
+            Err(e) => return Err(Status::internal(e)),
         };
 
         Ok(Response::new(StorageEntry {
             key_name: Default::default(),
-            key_path: key_path,
+            key_path,
             payload: Default::default(),
         }))
     }
@@ -267,12 +287,12 @@ impl Dds for MyService {
 
         let key_path = match key_path {
             Ok(key_path) => key_path,
-            Err(e) => return Err(Status::internal(e.to_string())),
+            Err(e) => return Err(Status::internal(e)),
         };
 
         Ok(Response::new(StorageEntry {
             key_name: Default::default(),
-            key_path: key_path,
+            key_path,
             payload: Default::default(),
         }))
     }
@@ -304,8 +324,8 @@ impl Dds for MyService {
                     });
                 }
                 Ok(Response::new(StorageEntries { entries: ret }))
-            },
-            Err(e) => Err(Status::aborted(format!("{}", e))),
+            }
+            Err(e) => Err(Status::aborted(e)),
         }
     }
 }
@@ -314,9 +334,9 @@ impl MyService {
     pub fn check_admin_token(request_metadata: &MetadataMap) -> Result<(), Status> {
         let role = request_metadata.get("role").unwrap().to_str().unwrap();
         if role != "admin" {
-            return Err(Status::permission_denied(
+            Err(Status::permission_denied(
                 "This procedure requires an admin token, which you did not provide.",
-            ));
+            ))
         } else {
             Ok(())
         }
@@ -324,9 +344,9 @@ impl MyService {
     pub fn check_user_token(request_metadata: &MetadataMap) -> Result<(), Status> {
         let role = request_metadata.get("role").unwrap().to_str().unwrap();
         if role != "admin" && role != "user" {
-            return Err(Status::permission_denied(
+            Err(Status::permission_denied(
                 "This procedure needs an admin or user token, which you did not provide.",
-            ));
+            ))
         } else {
             Ok(())
         }
@@ -349,24 +369,22 @@ fn get_admin_token() -> String {
         user_id: "_admin".to_string(),
         exp: exp.timestamp(),
     };
-    let token = jsonwebtoken::encode(
+    jsonwebtoken::encode(
         &jsonwebtoken::Header::default(),
         &claims,
         &jsonwebtoken::EncodingKey::from_secret(secret),
     )
-    .unwrap();
-    token
+    .unwrap()
 }
 
 async fn print_admin_token() {
     let token = get_admin_token();
+    std::fs::write("admin_token.txt", token.clone()).unwrap();
     println!("{}", token);
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    MAP.set(Mutex::new(HashMap::<String, Vec<u8>>::new()))
-        .unwrap();
     assert!(STORAGE.set(Box::new(BasicStorage::new())).is_ok());
     let mut jwt_secret: [u8; 32] = [0; 32];
     let mut rng = rand::thread_rng();
@@ -384,13 +402,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     /* TLS */
     // reading cert and key of server from disk
-    let cert = include_str!("../cfssl/pd-server.pem");
-    let key = include_str!("../cfssl/pd-server-key.pem");
+    let cert = include_str!("../example-ca-keys/server.pem");
+    let key = include_str!("../example-ca-keys/server-key.pem");
     // creating identity from cert and key
     let server_identity = tonic::transport::Identity::from_pem(cert.as_bytes(), key.as_bytes());
 
     // https://developers.cloudflare.com/cloudflare-one/identity/devices/mutual-tls-authentication
-    let client_ca_cert = tokio::fs::read("cfssl/ca.pem").await?;
+    let client_ca_cert = tokio::fs::read("example-ca-keys/ca.pem").await?;
     let client_ca_cert = tonic::transport::Certificate::from_pem(client_ca_cert);
 
     // creating tls config

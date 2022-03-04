@@ -21,10 +21,10 @@ async fn generate_request<T>(jwt: &str, data: T) -> tonic::Request<T> {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Client mTLS
-    let server_root_ca_cert = tokio::fs::read("cfssl/ca.pem").await?;
+    let server_root_ca_cert = tokio::fs::read("example-ca-keys/ca.pem").await?;
     let server_root_ca_cert = Certificate::from_pem(server_root_ca_cert);
-    let client_cert = tokio::fs::read("cfssl/client.pem").await?;
-    let client_key = tokio::fs::read("cfssl/client-key.pem").await?;
+    let client_cert = tokio::fs::read("example-ca-keys/client.pem").await?;
+    let client_key = tokio::fs::read("example-ca-keys/client-key.pem").await?;
     let client_identity = Identity::from_pem(client_cert, client_key);
 
     let tls = ClientTlsConfig::new()
@@ -57,7 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Replace this with token generated from server upon startup
-    let token = MetadataValue::from_static("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VyX2lkIjoiX2FkbWluIiwiZXhwIjoxNjQ2NTI4NDExfQ.KHkRSJggXu51e7cwL3MCc1_04rVqXnQ_bQOQAKvhl3I");
+    let token = std::fs::read_to_string("admin_token.txt").unwrap();
+    let token = MetadataValue::from_str(&token).unwrap();
     request.metadata_mut().insert("authorization", token);
 
     let response = client.import_user(request).await?;
@@ -84,7 +85,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         payload: Default::default(),
     };
 
-    let keys_to_read = StorageEntries { entries: vec![key_name.clone()] };
+    let keys_to_read = StorageEntries {
+        entries: vec![key_name.clone()],
+    };
 
     let request = generate_request(&jwt, key_name_and_payload_1.clone()).await;
 
@@ -92,7 +95,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let response: StorageEntry = response.into_inner();
 
-    println!("Test: The first create entry response should be ok: {:?}", response);
+    println!(
+        "Test: The first create entry response should be ok: {:?}",
+        response
+    );
 
     let responded_key_path = response.key_path;
 
@@ -100,7 +106,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let response = client.create_entry(request).await;
 
-    assert!(response.is_err(), "Test: this response should fail, created same key name twice");
+    assert!(
+        response.is_err(),
+        "Test: this response should fail, created same key name twice"
+    );
 
     let request = generate_request(&jwt, keys_to_read.clone()).await;
 
@@ -117,7 +126,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let response: StorageEntry = response.into_inner();
 
-    println!("Test: response after update should return key path: {:?}", response);
+    println!(
+        "Test: response after update should return key path: {:?}",
+        response
+    );
 
     let request = generate_request(&jwt, keys_to_read.clone()).await;
 
@@ -141,7 +153,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let response: StorageEntries = response.into_inner();
 
-    println!("Test: read response should be now also contain old value: {:?}", response);
+    println!(
+        "Test: read response should be now also contain old value: {:?}",
+        response
+    );
 
     let request = generate_request(&jwt, key_name.clone()).await;
 
@@ -153,12 +168,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let response: StorageEntries = response.into_inner();
 
-    println!("Test: read response should be empty after deleted: {:?}", response);
-
-
-
-
-
+    println!(
+        "Test: read response should be empty after deleted: {:?}",
+        response
+    );
 
     Ok(())
 }

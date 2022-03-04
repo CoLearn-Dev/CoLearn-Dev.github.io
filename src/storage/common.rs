@@ -33,10 +33,7 @@ pub trait Storage {
     /// # How it works
     /// Just read the entries in the storage.
     /// This check for one thing: the token subsequent to the last ':' should not start with two underscores '__'.\
-    fn read_from_key_paths(
-        &self,
-        key_paths: &[String],
-    ) -> Result<Vec<Option<Vec<u8>>>, String>;
+    fn read_from_key_paths(&self, key_paths: &[String]) -> Result<Vec<Option<Vec<u8>>>, String>;
 
     /// Read entries in the storage from the given `key_path`s.
     ///
@@ -128,12 +125,12 @@ pub trait Storage {
 
 /// Checks if the input key_path contains two underscores '__' following the last colon ':'.
 pub fn ends_with_reserved_tokens(key_path: &str) -> Result<(), String> {
-    let pos = key_path.rfind(":");
+    let pos = key_path.rfind(':');
     let pos: usize = match pos {
         None => 0,
         Some(pos) => pos + 1,
     };
-    if key_path[pos..pos+2] == *"__" {
+    if key_path[pos..pos + 2] == *"__" {
         return Err(format!("key_path {} ends with reserved tokens", key_path));
     }
     Ok(())
