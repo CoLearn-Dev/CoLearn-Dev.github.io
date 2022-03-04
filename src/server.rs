@@ -200,7 +200,10 @@ impl Dds for MyService {
                 key_name: Default::default(),
                 key_path: key_path.to_string(),
                 payload: match payload {
-                    Some(payload) => payload,
+                    Some(payload) => {
+                        println!("payload is {:?}", String::from_utf8(payload.clone()).unwrap());
+                        payload
+                    },
                     None => Default::default(),
                 }
             });
@@ -210,7 +213,10 @@ impl Dds for MyService {
                 key_name: key_name.to_string(),
                 key_path: Default::default(),
                 payload: match payload {
-                    Some(payload) => payload,
+                    Some(payload) => {
+                        println!("payload is {:?}", String::from_utf8(payload.clone()).unwrap());
+                        payload
+                    },
                     None => Default::default(),
                 }
             });
@@ -416,7 +422,7 @@ fn check_auth(req: Request<()>) -> Result<Request<()>, Status> {
         }
     };
     let secret = JWT_SECRET.get().unwrap();
-    println!("{:#?}", secret);
+    // println!("{:#?}", secret);
     let token = match jsonwebtoken::decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret),

@@ -18,7 +18,7 @@ impl BasicStorage {
 impl crate::storage::common::Storage for BasicStorage {
     fn create(&self, user_id: &str, key_name: &str, value: &[u8]) -> Result<String, String> {
         ends_with_reserved_tokens(key_name)?;
-        let timestamp = Utc::now().timestamp();
+        let timestamp = Utc::now().timestamp_nanos();
         let mut map = MAP.get().unwrap().lock().unwrap();
         let key_path_created = format!("{}::{}@{}", user_id, key_name, timestamp);
         let user_id_key_name = format!("{}::{}", user_id, key_name);
@@ -111,7 +111,7 @@ impl crate::storage::common::Storage for BasicStorage {
 
     fn update(&self, user_id: &str, key_name: &str, value: &[u8]) -> Result<String, String> {
         ends_with_reserved_tokens(key_name)?;
-        let timestamp = Utc::now().timestamp();
+        let timestamp = Utc::now().timestamp_nanos();
         let mut map = MAP.get().unwrap().lock().unwrap();
         let key_path_created = format!("{}::{}@{}", user_id, key_name, timestamp);
         let user_id_key_name = format!("{}::{}", user_id, key_name);

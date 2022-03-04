@@ -10,6 +10,14 @@ use secp256k1::{Message, Secp256k1};
 use tonic::metadata::MetadataValue;
 use tonic::transport::{Certificate, Channel, ClientTlsConfig, Identity};
 
+async fn generate_request<T>(jwt: &str, data: T) -> tonic::Request<T> {
+    let mut request = tonic::Request::new(data);
+
+    let user_token = MetadataValue::from_str(jwt).unwrap();
+    request.metadata_mut().insert("authorization", user_token);
+    request
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Client mTLS
@@ -49,7 +57,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     });
 
     // Replace this with token generated from server upon startup
-    let token = MetadataValue::from_static("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VyX2lkIjoiX2FkbWluIiwiZXhwIjoxNjQ2NDY4ODIwfQ.fyHi7Huj6py4HMUg5iPCebvwKHYazs7iXypQ_W-RbHY");
+    let token = MetadataValue::from_static("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiYWRtaW4iLCJ1c2VyX2lkIjoiX2FkbWluIiwiZXhwIjoxNjQ2NTI4NDExfQ.KHkRSJggXu51e7cwL3MCc1_04rVqXnQ_bQOQAKvhl3I");
     request.metadata_mut().insert("authorization", token);
 
     let response = client.import_user(request).await?;
@@ -76,32 +84,25 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         payload: Default::default(),
     };
 
-    let keys_to_read = StorageEntries { entries: vec![key_name] };
+    let keys_to_read = StorageEntries { entries: vec![key_name.clone()] };
 
-    let mut request = tonic::Request::new(key_name_and_payload_1.clone());
-
-    let user_token = MetadataValue::from_str(&jwt).unwrap();
-    request.metadata_mut().insert("authorization", user_token);
+    let request = generate_request(&jwt, key_name_and_payload_1.clone()).await;
 
     let response = client.create_entry(request).await?;
 
     let response: StorageEntry = response.into_inner();
 
-    println!("Test: this response should be ok: {:?}", response);
+    println!("Test: The first create entry response should be ok: {:?}", response);
 
-    let mut request = tonic::Request::new(key_name_and_payload_1.clone());
+    let responded_key_path = response.key_path;
 
-    let user_token = MetadataValue::from_str(&jwt).unwrap();
-    request.metadata_mut().insert("authorization", user_token);
+    let request = generate_request(&jwt, key_name_and_payload_1.clone()).await;
 
     let response = client.create_entry(request).await;
 
     assert!(response.is_err(), "Test: this response should fail, created same key name twice");
 
-    let mut request = tonic::Request::new(keys_to_read.clone());
-
-    let user_token = MetadataValue::from_str(&jwt).unwrap();
-    request.metadata_mut().insert("authorization", user_token);
+    let request = generate_request(&jwt, keys_to_read.clone()).await;
 
     let response = client.read_entries(request).await?;
 
@@ -110,10 +111,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let v: String = String::from_utf8(response.entries[0].payload.clone()).unwrap();
     println!("Test: read response should be ok: {:?}", v);
 
-    let mut request = tonic::Request::new(key_name_and_payload_2.clone());
-
-    let user_token = MetadataValue::from_str(&jwt).unwrap();
-    request.metadata_mut().insert("authorization", user_token);
+    let request = generate_request(&jwt, key_name_and_payload_2.clone()).await;
 
     let response = client.update_entry(request).await?;
 
@@ -121,10 +119,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Test: response after update should return key path: {:?}", response);
 
-    let mut request = tonic::Request::new(keys_to_read);
-
-    let user_token = MetadataValue::from_str(&jwt).unwrap();
-    request.metadata_mut().insert("authorization", user_token);
+    let request = generate_request(&jwt, keys_to_read.clone()).await;
 
     let response = client.read_entries(request).await?;
 
@@ -132,6 +127,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let v: String = String::from_utf8(response.entries[0].payload.clone()).unwrap();
     println!("Test: read response after update should be ok: {:?}", v);
+
+    let mut keys_to_read2 = keys_to_read.clone();
+    keys_to_read2.entries.push(StorageEntry {
+        key_name: Default::default(),
+        key_path: responded_key_path,
+        payload: Default::default(),
+    });
+
+    let request = generate_request(&jwt, keys_to_read2.clone()).await;
+
+    let response = client.read_entries(request).await?;
+
+    let response: StorageEntries = response.into_inner();
+
+    println!("Test: read response should be now also contain old value: {:?}", response);
+
+    let request = generate_request(&jwt, key_name.clone()).await;
+
+    client.delete_entry(request).await?;
+
+    let request = generate_request(&jwt, keys_to_read.clone()).await;
+
+    let response = client.read_entries(request).await?;
+
+    let response: StorageEntries = response.into_inner();
+
+    println!("Test: read response should be empty after deleted: {:?}", response);
+
 
 
 
