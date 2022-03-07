@@ -19,6 +19,7 @@ use secp256k1::ecdsa::Signature;
 use secp256k1::{Message, PublicKey, Secp256k1};
 use tonic::metadata::MetadataMap;
 use tonic::transport::ServerTlsConfig;
+use tracing::debug;
 
 pub mod dds {
     tonic::include_proto!("dds");
@@ -45,7 +46,7 @@ impl Dds for MyService {
         &self,
         request: Request<RefreshTokenRequest>,
     ) -> Result<Response<Jwt>, Status> {
-        println!("Got a request: {:?}", request);
+        debug!("Got a request: {:?}", request);
         Self::check_user_token(request.metadata())?;
         let secret = JWT_SECRET.get().unwrap();
         let body: RefreshTokenRequest = request.into_inner();
@@ -172,7 +173,7 @@ impl Dds for MyService {
         for entry in entries {
             let key_path: String = entry.key_path;
             let key_name: String = entry.key_name;
-            println!("key_path is {}\n, key_name is {}\n", key_path, key_name);
+            debug!("key_path is {}\n, key_name is {}\n", key_path, key_name);
             if key_path.is_empty() && key_name.is_empty() {
                 return Err(Status::invalid_argument(
                     "both key_path and key_name are empty",
@@ -199,11 +200,11 @@ impl Dds for MyService {
                 Ok(entries) => entries,
                 Err(e) => return Err(Status::internal(e)),
             };
-        println!(
+        debug!(
             "payload_returned_from_key_paths is {:?}",
             payload_returned_from_key_paths
         );
-        println!(
+        debug!(
             "payload_returned_from_key_names is {:?}",
             payload_returned_from_key_names
         );
@@ -213,7 +214,7 @@ impl Dds for MyService {
                 key_path: key_path.to_string(),
                 payload: match payload {
                     Some(payload) => {
-                        println!(
+                        debug!(
                             "payload is {:?}",
                             String::from_utf8(payload.clone()).unwrap()
                         );
@@ -229,7 +230,7 @@ impl Dds for MyService {
                 key_path: Default::default(),
                 payload: match payload {
                     Some(payload) => {
-                        println!(
+                        debug!(
                             "payload is {:?}",
                             String::from_utf8(payload.clone()).unwrap()
                         );
@@ -380,18 +381,20 @@ fn get_admin_token() -> String {
 async fn print_admin_token() {
     let token = get_admin_token();
     std::fs::write("admin_token.txt", token.clone()).unwrap();
-    println!("{}", token);
+    debug!("{}", token);
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // install global collector configured based on RUST_LOG env var.
+    tracing_subscriber::fmt::init();
     assert!(STORAGE.set(Box::new(BasicStorage::new())).is_ok());
     let mut jwt_secret: [u8; 32] = [0; 32];
     let mut rng = rand::thread_rng();
 
     rng.fill_bytes(&mut jwt_secret);
     // let jwt_secret = String::from_utf8(jwt_secret.to_vec()).unwrap();
-    println!("JWT secret: {:?}", jwt_secret);
+    debug!("JWT secret: {:?}", jwt_secret);
     JWT_SECRET.set(jwt_secret).unwrap();
 
     tokio::spawn(print_admin_token());
@@ -427,20 +430,20 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 fn check_auth(req: Request<()>) -> Result<Request<()>, Status> {
-    println!("Intercepting request: {:?}", req);
+    debug!("Intercepting request: {:?}", req);
 
     let token = match req.metadata().get("authorization") {
         Some(t) => {
-            println!("The authorization header is: {}", t.to_str().unwrap());
+            debug!("The authorization header is: {}", t.to_str().unwrap());
             t.to_str().unwrap()
         }
         None => {
-            println!("Debug: No valid auth token");
+            debug!("Debug: No valid auth token");
             return Err(Status::unauthenticated("No valid auth token"));
         }
     };
     let secret = JWT_SECRET.get().unwrap();
-    // println!("{:#?}", secret);
+    // debug!("{:#?}", secret);
     let token = match jsonwebtoken::decode::<Claims>(
         token,
         &DecodingKey::from_secret(secret),
@@ -448,8 +451,7 @@ fn check_auth(req: Request<()>) -> Result<Request<()>, Status> {
     ) {
         Ok(token_data) => token_data,
         Err(e) => {
-            println!("Debug: wrong secret. {}", e);
-            return Err(Status::unauthenticated("Wrong secret."));
+            return Err(Status::unauthenticated(format!("Debug: wrong secret or token has expired. {}", e)));
         }
     };
 

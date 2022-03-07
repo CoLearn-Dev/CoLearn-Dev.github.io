@@ -17,7 +17,7 @@ service DDS {
     // Returns a key_path with current timestamp included.
     rpc CreateEntry (StorageEntry) returns (StorageEntry);
 
-    // Retrieves entries from DDS storage.\
+    // Retrieves entries from DDS storage.
     // One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned.
     // If key_name is nonempty, returns the latest version of the entry with that key name.
     // This is done by first obtaining the timestamp representing the latest version of the entry,

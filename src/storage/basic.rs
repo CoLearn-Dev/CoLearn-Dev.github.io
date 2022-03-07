@@ -3,6 +3,7 @@ use chrono::Utc;
 use once_cell::sync::OnceCell;
 use std::collections::HashMap;
 use std::sync::Mutex;
+use tracing::{debug, warn};
 
 static MAP: OnceCell<Mutex<HashMap<String, Vec<u8>>>> = OnceCell::new();
 
@@ -12,7 +13,7 @@ impl BasicStorage {
     pub fn new() -> Self {
         match MAP.set(Mutex::new(HashMap::new())) {
             Ok(_) => (),
-            Err(_) => println!("BasicStorage is already initialized"),
+            Err(_) => warn!("BasicStorage is already initialized"),
         }
         Self {}
     }
@@ -31,7 +32,7 @@ impl crate::storage::common::Storage for BasicStorage {
         let mut map = MAP.get().unwrap().lock().unwrap();
         let key_path_created = format!("{}::{}@{}", user_id, key_name, timestamp);
         let user_id_key_name = format!("{}::{}", user_id, key_name);
-        println!("{}", user_id_key_name);
+        debug!("{}", user_id_key_name);
         if map.contains_key(&user_id_key_name) {
             return Err(format!("Key name already exists: {}", user_id_key_name));
         }
