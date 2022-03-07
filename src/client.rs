@@ -12,7 +12,6 @@ use tonic::transport::{Certificate, Channel, ClientTlsConfig, Identity};
 
 async fn generate_request<T>(jwt: &str, data: T) -> tonic::Request<T> {
     let mut request = tonic::Request::new(data);
-
     let user_token = MetadataValue::from_str(jwt).unwrap();
     request.metadata_mut().insert("authorization", user_token);
     request
@@ -39,8 +38,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut client = DdsClient::new(channel);
 
-    // The following are a test for import new user
-
+    // Import New user
     let secp = Secp256k1::new();
     let (secret_key, public_key) = secp.generate_keypair(&mut secp256k1::rand::thread_rng());
     let public_key_vec = public_key.serialize().to_vec();
@@ -56,15 +54,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         expiration_time: (timestamp + Duration::hours(24).num_seconds()) as i64,
     });
 
-    // Replace this with token generated from server upon startup
     let token = std::fs::read_to_string("admin_token.txt").unwrap();
     let token = MetadataValue::from_str(&token).unwrap();
     request.metadata_mut().insert("authorization", token);
-
     let response = client.import_user(request).await?;
-
     let response: Jwt = response.into_inner();
-
     let jwt: String = response.jwt;
 
     let key_name_and_payload_1 = StorageEntry {
@@ -89,54 +83,44 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         entries: vec![key_name.clone()],
     };
 
+    // Create new entry
     let request = generate_request(&jwt, key_name_and_payload_1.clone()).await;
-
     let response = client.create_entry(request).await?;
-
     let response: StorageEntry = response.into_inner();
-
     println!(
         "Test: The first create entry response should be ok: {:?}",
         response
     );
 
+    // Create same entry, should error
     let responded_key_path = response.key_path;
-
     let request = generate_request(&jwt, key_name_and_payload_1.clone()).await;
-
     let response = client.create_entry(request).await;
-
     assert!(
         response.is_err(),
         "Test: this response should fail, created same key name twice"
     );
 
+    // Read entry
     let request = generate_request(&jwt, keys_to_read.clone()).await;
-
     let response = client.read_entries(request).await?;
-
     let response: StorageEntries = response.into_inner();
-
     let v: String = String::from_utf8(response.entries[0].payload.clone()).unwrap();
     println!("Test: read response should be ok: {:?}", v);
 
+    // Update entry
     let request = generate_request(&jwt, key_name_and_payload_2.clone()).await;
-
     let response = client.update_entry(request).await?;
-
     let response: StorageEntry = response.into_inner();
-
     println!(
         "Test: response after update should return key path: {:?}",
         response
     );
 
+    // Read entry after update
     let request = generate_request(&jwt, keys_to_read.clone()).await;
-
     let response = client.read_entries(request).await?;
-
     let response: StorageEntries = response.into_inner();
-
     let v: String = String::from_utf8(response.entries[0].payload.clone()).unwrap();
     println!("Test: read response after update should be ok: {:?}", v);
 
@@ -147,27 +131,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         payload: Default::default(),
     });
 
+    // Read entries with a key path and a key name
     let request = generate_request(&jwt, keys_to_read2.clone()).await;
-
     let response = client.read_entries(request).await?;
-
     let response: StorageEntries = response.into_inner();
-
     println!(
         "Test: read response should be now also contain old value: {:?}",
         response
     );
 
+    // Delete entry
     let request = generate_request(&jwt, key_name.clone()).await;
-
     client.delete_entry(request).await?;
-
     let request = generate_request(&jwt, keys_to_read.clone()).await;
-
     let response = client.read_entries(request).await?;
-
     let response: StorageEntries = response.into_inner();
-
     println!(
         "Test: read response should be empty after deleted: {:?}",
         response

@@ -90,8 +90,7 @@ impl Dds for MyService {
             }
         };
 
-        let current_timestamp: i64 = body.signature_timestamp;
-        let expire_time = body.expiration_time;
+        let signature_timestamp: i64 = body.signature_timestamp;
         let signature: Vec<u8> = body.signature;
         let signature = match Signature::from_compact(&signature) {
             Ok(sig) => sig,
@@ -104,16 +103,16 @@ impl Dds for MyService {
         };
 
         if chrono::Utc
-            .timestamp(current_timestamp, 0)
+            .timestamp(signature_timestamp, 0)
             .signed_duration_since(chrono::Utc::now())
-            .num_hours()
-            > 48
+            .num_minutes()
+            > 10
         {
             return Err(Status::unauthenticated(
-                "the timestamp is more than 48 hours before the current time",
+                "the timestamp is more than 10 minutes before the current time",
             ));
         }
-        public_key_vec.extend_from_slice(&current_timestamp.to_le_bytes());
+        public_key_vec.extend_from_slice(&signature_timestamp.to_le_bytes());
         let message = Message::from_slice(&sha256(&public_key_vec)).unwrap();
         let secp = Secp256k1::new();
         match secp.verify_ecdsa(&message, &signature, &public_key) {
@@ -130,7 +129,7 @@ impl Dds for MyService {
             &Claims {
                 role: "user".to_string(),
                 user_id: base64::encode(&public_key.serialize()),
-                exp: expire_time,
+                exp: body.expiration_time,
             },
             &jsonwebtoken::EncodingKey::from_secret(JWT_SECRET.get().unwrap()),
         )
@@ -147,9 +146,9 @@ impl Dds for MyService {
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntry = request.into_inner();
         let key_name: String = body.key_name;
-        let value: Vec<u8> = body.payload;
+        let payload: Vec<u8> = body.payload;
         let storage = STORAGE.get().unwrap();
-        match storage.create(&user_id, &key_name, &value) {
+        match storage.create(&user_id, &key_name, &payload) {
             Ok(key_path) => Ok(Response::new(StorageEntry {
                 key_name: Default::default(),
                 key_path,
@@ -242,11 +241,6 @@ impl Dds for MyService {
             });
         }
 
-        // let value = storage.read_entries(&user_id, &key);
-        // match value {
-        //     Ok(v) => Ok(Response::new(ReadEntryReply { value: v })),
-        //     Err(e) => Err(Status::aborted(format!("{}", e))),
-        // }
         Ok(Response::new(StorageEntries {
             entries: entries_vec,
         }))
@@ -260,9 +254,9 @@ impl Dds for MyService {
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntry = request.into_inner();
         let key_name: String = body.key_name;
-        let value: Vec<u8> = body.payload;
+        let payload: Vec<u8> = body.payload;
         let storage = STORAGE.get().unwrap();
-        let key_path = storage.update(&user_id, &key_name, &value);
+        let key_path = storage.update(&user_id, &key_name, &payload);
 
         let key_path = match key_path {
             Ok(key_path) => key_path,
@@ -390,6 +384,7 @@ fn get_admin_token() -> String {
 }
 
 async fn print_admin_token() {
+    // This should update every 24 hours in production code, but now we're just writing it to a file.
     let token = get_admin_token();
     std::fs::write("admin_token.txt", token.clone()).unwrap();
     debug!("{}", token);
@@ -462,7 +457,10 @@ fn check_auth(req: Request<()>) -> Result<Request<()>, Status> {
     ) {
         Ok(token_data) => token_data,
         Err(e) => {
-            return Err(Status::unauthenticated(format!("Debug: wrong secret or token has expired. {}", e)));
+            return Err(Status::unauthenticated(format!(
+                "Debug: wrong secret or token has expired. {}",
+                e
+            )));
         }
     };
 
