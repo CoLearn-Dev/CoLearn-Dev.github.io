@@ -3,7 +3,8 @@ package dds;
 
 service DDS {
     // Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp.
-    // Requires user or admin Jwt.
+    // Requires user jwt.
+    // You cannot refresh an admin token.
     rpc RefreshToken (RefreshTokenRequest) returns (Jwt);
 
     // Generates a JWT from a user with a public/secret key pair.
@@ -70,10 +71,9 @@ message StorageEntries {
 }
 
 
-// Contains the token to be refreshed and the new expiration time to be set for the generated token.
+// Contains the new expiration time to be set for the generated token.
+// The old token is contained in the header of this request, under the 'authorization' field.
 message RefreshTokenRequest {
-    // The old token to be refreshed.
-    string jwt = 1;
     // THe new expiration time for the token, in linux timestamp format.
     int64 expiration_time = 2;
 }

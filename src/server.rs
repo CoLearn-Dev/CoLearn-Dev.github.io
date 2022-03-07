@@ -49,10 +49,11 @@ impl Dds for MyService {
         debug!("Got a request: {:?}", request);
         Self::check_user_token(request.metadata())?;
         let secret = JWT_SECRET.get().unwrap();
+        let token = request.metadata().get("authorization").unwrap().clone();
+        let token = token.to_str().unwrap();
         let body: RefreshTokenRequest = request.into_inner();
-        let token = body.jwt;
         let token = jsonwebtoken::decode::<Claims>(
-            &token,
+            token,
             &jsonwebtoken::DecodingKey::from_secret(secret),
             &jsonwebtoken::Validation::default(),
         )
@@ -142,7 +143,7 @@ impl Dds for MyService {
         &self,
         request: Request<StorageEntry>,
     ) -> Result<Response<StorageEntry>, Status> {
-        Self::check_user_token(request.metadata())?;
+        Self::check_user_or_admin_token(request.metadata())?;
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntry = request.into_inner();
         let key_name: String = body.key_name;
@@ -162,7 +163,7 @@ impl Dds for MyService {
         &self,
         request: Request<StorageEntries>,
     ) -> Result<Response<StorageEntries>, Status> {
-        Self::check_user_token(request.metadata())?;
+        Self::check_user_or_admin_token(request.metadata())?;
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntries = request.into_inner();
         let entries: Vec<StorageEntry> = body.entries;
@@ -255,7 +256,7 @@ impl Dds for MyService {
         &self,
         request: Request<StorageEntry>,
     ) -> Result<Response<StorageEntry>, Status> {
-        Self::check_user_token(request.metadata())?;
+        Self::check_user_or_admin_token(request.metadata())?;
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntry = request.into_inner();
         let key_name: String = body.key_name;
@@ -279,7 +280,7 @@ impl Dds for MyService {
         &self,
         request: Request<StorageEntry>,
     ) -> Result<Response<StorageEntry>, Status> {
-        Self::check_user_token(request.metadata())?;
+        Self::check_user_or_admin_token(request.metadata())?;
         let user_id = Self::get_user_id(request.metadata());
         let body: StorageEntry = request.into_inner();
         let key_name: String = body.key_name;
@@ -302,7 +303,7 @@ impl Dds for MyService {
         &self,
         request: Request<ReadKeysRequest>,
     ) -> Result<Response<StorageEntries>, Status> {
-        Self::check_user_token(request.metadata())?;
+        Self::check_user_or_admin_token(request.metadata())?;
         let user_id = Self::get_user_id(request.metadata());
         let body: ReadKeysRequest = request.into_inner();
         let storage = STORAGE.get().unwrap();
@@ -342,9 +343,19 @@ impl MyService {
             Ok(())
         }
     }
-    pub fn check_user_token(request_metadata: &MetadataMap) -> Result<(), Status> {
+    pub fn check_user_or_admin_token(request_metadata: &MetadataMap) -> Result<(), Status> {
         let role = request_metadata.get("role").unwrap().to_str().unwrap();
         if role != "admin" && role != "user" {
+            Err(Status::permission_denied(
+                "This procedure needs an admin or user token, which you did not provide.",
+            ))
+        } else {
+            Ok(())
+        }
+    }
+    pub fn check_user_token(request_metadata: &MetadataMap) -> Result<(), Status> {
+        let role = request_metadata.get("role").unwrap().to_str().unwrap();
+        if role != "user" {
             Err(Status::permission_denied(
                 "This procedure needs an admin or user token, which you did not provide.",
             ))
