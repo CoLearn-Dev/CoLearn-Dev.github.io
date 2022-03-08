@@ -8,10 +8,10 @@ Use `cargo run -- --address <address> --port <port>` to start the DDS server.
 ## Generate mTLS certificates
 The DDS server and the clients uses mTLS to communicate. To generate the corresponding certificate and keys for mTLS, we use CFSSL. 
 
-Links for some useful tutorials:
-- TLS: https://support.pingcap.com/hc/en-us/articles/360050038113-Create-TLS-Certificates-Using-CFSSL
-- mTLS: https://developers.cloudflare.com/cloudflare-one/identity/devices/mutual-tls-authentication/
-- github: https://github.com/cloudflare/cfssl
+Links for some useful tutorials on CFSSL:
+- [TLS](https://support.pingcap.com/hc/en-us/articles/360050038113-Create-TLS-Certificates-Using-CFSSL)
+- [mTLS](https://developers.cloudflare.com/cloudflare-one/identity/devices/mutual-tls-authentication/)
+- [GitHub repo](https://github.com/cloudflare/cfssl)
 
 ## Test the server
 
