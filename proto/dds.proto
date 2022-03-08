@@ -75,7 +75,7 @@ message StorageEntries {
 // The old token is contained in the header of this request, under the 'authorization' field.
 message RefreshTokenRequest {
     // THe new expiration time for the token, in linux timestamp format.
-    int64 expiration_time = 2;
+    int64 expiration_time = 1;
 }
 
 // Import a user from an existing public/secret key pair.

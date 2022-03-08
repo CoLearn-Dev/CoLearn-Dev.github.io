@@ -1,4 +1,4 @@
-use dds::server::init_and_run;
+use dds_core::server::init_and_run;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]

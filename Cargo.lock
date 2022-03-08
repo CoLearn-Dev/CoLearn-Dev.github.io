@@ -161,7 +161,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dds"
+name = "dds-core"
 version = "0.1.0"
 dependencies = [
  "base64 0.13.0",
