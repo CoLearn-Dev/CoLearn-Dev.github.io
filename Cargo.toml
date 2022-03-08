@@ -26,6 +26,7 @@ rand = { version = "0.8.4", features = ["std_rng"] }
 secp256k1 = { version = "0.21.2", features = ["rand-std"] }
 serde = "1.0"
 serde_json = "1.0.79"
+structopt = "0.3"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread", "rt", "fs"] }
 tonic = { version = "0.6", features = ["tls"] }
 tracing = "0.1"
