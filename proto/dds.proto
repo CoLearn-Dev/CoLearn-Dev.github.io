@@ -2,29 +2,98 @@ syntax = "proto3";
 package dds;
 
 service DDS {
-    // Given a key and a value, stores the value string under the key
-    rpc StoreString (StoreStringRequest) returns (SuccessBool);
-    // Loads a string from the key passed in
-    rpc LoadString (LoadStringRequest) returns (LoadStringReply);
+    // Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp.
+    // Requires user jwt.
+    // You cannot refresh an admin token.
+    rpc RefreshToken (RefreshTokenRequest) returns (Jwt);
+
+    // Generates a JWT from a user with a public/secret key pair.
+    // The generated JWT specify the user's role as a user, contains their user_id, which is a base64 encoding of the provided public key.
+    // Requires admin Jwt.
+    rpc ImportUser (ImportUserRequest) returns (Jwt);
+
+    // Creates an entry in DDS storage.
+    // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc CreateEntry (StorageEntry) returns (StorageEntry);
+
+    // Retrieves entries from DDS storage.
+    // One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned.
+    // If key_name is nonempty, returns the latest version of the entry with that key name.
+    // This is done by first obtaining the timestamp representing the latest version of the entry,
+    // and then retrieving the entry with that timestamp by including the timestamp in key_path.
+    // In this case, the key_path field is empty in the returned StorageEntry.
+    // If key_path is nonempty, returns the entry with the corresponding key path.
+    // If you're looking for a specific version of an entry, use specify the timestamp inside the `key_path` field.
+    // In this case, the key_name field is empty in the returned StorageEntry.
+    // Requires user or admin JWT.
+    rpc ReadEntries (StorageEntries) returns (StorageEntries);
+
+    // Updates an entry in DDS storage.
+    // In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored.
+    // Creates a new entry with the current timestamp in the key_path field.
+    // Sets the latest entry to current timestamp.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc UpdateEntry (StorageEntry) returns (StorageEntry);
+
+    // Deletes an entry from DDS storage.
+    // Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current
+    // timestamp in the key_path field. Therefore the current timestamp points to nothing.
+    // Requires user or admin JWT.
+    // Returns a key_path with current timestamp included.
+    rpc DeleteEntry (StorageEntry) returns (StorageEntry);
+
+    // Returns list of entries in DDS storage whose key_path starts with input prefix.
+    // Requires user or admin JWT.
+    rpc ReadKeys (ReadKeysRequest) returns (StorageEntries);
 }
 
-message StoreStringRequest {
-    // Stores a value string from the key passed in
-    string key = 1;
-    string value = 2;
+// JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.
+message Jwt {
+    string jwt = 1;
 }
 
-message LoadStringRequest {
-    // Loads a string from the key passed in
-    string key = 1;
+// An entry in the DDS storage.
+message StorageEntry {
+    // The key name of the entry.
+    string key_name = 1;
+    // The path of this entry. May contain information about the user_id, application_id, key name, and the timestamp of the entry.
+    string key_path = 2;
+    // The payload (value) of the entry.
+    bytes payload = 3;
 }
 
-message SuccessBool {
-    // True iff success
-    bool success = 1;
+// A list of entries.
+message StorageEntries {
+    repeated StorageEntry entries = 1;
 }
 
-message LoadStringReply {
-    // Loads a string from the key passed in
-    string value = 1;
+
+// Contains the new expiration time to be set for the generated token.
+// The old token is contained in the header of this request, under the 'authorization' field.
+message RefreshTokenRequest {
+    // THe new expiration time for the token, in linux timestamp format.
+    int64 expiration_time = 1;
+}
+
+// Import a user from an existing public/secret key pair.
+// A signature of the public key concatenated with the current timestamp at the time of signing is required to verify the user's possesion of the secret key and to prevent from replay attacks.
+message ImportUserRequest {
+    // The public key of the user, serialized in compact (default) form.
+    bytes public_key = 1;
+    // Linux timestamp of time of signature, in linux timestamp format.
+    // Te signature should be generated within 10 minutes of the tiem of signature verification
+    int64 signature_timestamp = 2;
+    // The EDCSA compact signature of the public key concatenated with little endian encoding of current time. This serves as a challenge response for the user to prevent from replay attacks.
+    bytes signature = 3;
+    // The expiration time for the token to be generated, in linux timestamp format.
+    int64 expiration_time = 4;
+}
+
+message ReadKeysRequest {
+    // The prefix of the key_path of the entries to be retrieved.
+    string prefix = 1;
+    bool include_history = 2;
 }
