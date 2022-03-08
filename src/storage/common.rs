@@ -136,11 +136,11 @@ pub fn ends_with_reserved_tokens(key_path: &str) -> Result<(), String> {
     Ok(())
 }
 
-/// Gets the longest prefix of the input string whose subsequent character is a ':'.
+/// Gets the longest prefix of the input string whose final character is a ':'.
 /// If no such prefix exists, return the empty string.
 pub fn get_prefix(key: &str) -> &str {
     match key.rfind(':') {
         None => "",
-        Some(pos) => &key[..pos],
+        Some(pos) => &key[..pos + 1],
     }
 }

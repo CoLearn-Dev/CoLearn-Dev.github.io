@@ -39,7 +39,8 @@ impl crate::storage::common::Storage for BasicStorage {
         map.insert(key_path_created.clone(), value.to_vec());
         map.insert(user_id_key_name, timestamp.to_string().into_bytes());
         let prefix = get_prefix(key_name);
-        let keys_directory = format!("{}::{}:__keys", user_id, prefix);
+        let keys_directory = format!("{}::{}__keys", user_id, prefix);
+        warn!("keys_directory is {}", keys_directory);
         let contains_key = map.contains_key(&keys_directory);
         if contains_key {
             let v = map.get(&keys_directory).unwrap();
@@ -126,7 +127,7 @@ impl crate::storage::common::Storage for BasicStorage {
         map.insert(key_path_created.clone(), value.to_vec());
         map.insert(user_id_key_name, timestamp.to_string().into_bytes());
         let prefix = get_prefix(key_name);
-        let keys_directory = format!("{}::{}:__keys", user_id, prefix);
+        let keys_directory = format!("{}::{}__keys", user_id, prefix);
         let contains_key = map.contains_key(&keys_directory);
         if contains_key {
             let v = map.get(&keys_directory).unwrap();

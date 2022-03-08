@@ -3,18 +3,6 @@ name = "dds"
 version = "0.1.0"
 edition = "2021"
 
-[[bin]]
-name = "dds-server"
-path = "src/server.rs"
-
-[[bin]]
-name = "openssl_demo"
-path = "src/openssl_demo.rs"
-
-[[bin]]
-name = "dds-client"
-path = "src/client.rs"
-
 [dependencies]
 base64 = "0.13.0"
 chrono = "0.4.19"
