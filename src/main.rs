@@ -1,4 +1,4 @@
-use dds_core::server::init_and_run;
+use dds_core::server::init_and_run_server;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
     let CommandLineArgs { address, port } = CommandLineArgs::from_args();
 
-    init_and_run(address, port).await;
+    init_and_run_server(address, port).await;
 
     Ok(())
 }

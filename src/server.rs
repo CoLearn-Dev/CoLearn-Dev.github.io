@@ -389,7 +389,7 @@ async fn print_admin_token() {
     debug!("{}", token);
 }
 
-pub async fn init_and_run(address: String, port: u16) {
+pub async fn init_and_run_server(address: String, port: u16) {
     set_jwt();
     tokio::spawn(print_admin_token());
 
@@ -434,7 +434,6 @@ fn set_jwt() {
     assert!(STORAGE.set(Box::new(BasicStorage::new())).is_ok());
     let mut jwt_secret: [u8; 32] = [0; 32];
     let mut rng = rand::thread_rng();
-
     rng.fill_bytes(&mut jwt_secret);
     debug!("JWT secret: {:?}", jwt_secret);
     JWT_SECRET.set(jwt_secret).unwrap();

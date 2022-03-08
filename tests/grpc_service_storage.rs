@@ -2,7 +2,7 @@ pub mod dds_proto {
     tonic::include_proto!("dds");
 }
 
-use ::dds_core::server::init_and_run;
+use ::dds_core::server::init_and_run_server;
 use chrono::Duration;
 use dds_proto::dds_client::DdsClient;
 use dds_proto::*;
@@ -21,7 +21,7 @@ async fn generate_request<T>(jwt: &str, data: T) -> tonic::Request<T> {
 #[tokio::test]
 async fn grpc_service_storage() -> Result<(), Box<dyn std::error::Error>> {
     tracing_subscriber::fmt::init();
-    tokio::spawn(init_and_run("127.0.0.1".to_string(), 8080));
+    tokio::spawn(init_and_run_server("127.0.0.1".to_string(), 8080));
     tokio::time::sleep(core::time::Duration::from_secs(1)).await;
     test_storage_crud().await;
     Ok(())
