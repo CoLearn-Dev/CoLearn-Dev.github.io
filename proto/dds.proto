@@ -50,12 +50,16 @@ service DDS {
     rpc ReadKeys (ReadKeysRequest) returns (StorageEntries);
 }
 
-// JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.
+/**
+ * JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.
+ */
 message Jwt {
     string jwt = 1;
 }
 
-// An entry in the DDS storage.
+/**
+ * An entry in the DDS storage.
+ */
 message StorageEntry {
     // The key name of the entry.
     string key_name = 1;
@@ -65,21 +69,29 @@ message StorageEntry {
     bytes payload = 3;
 }
 
-// A list of entries.
+/**
+ * A list of entries.
+ */
 message StorageEntries {
     repeated StorageEntry entries = 1;
 }
 
 
-// Contains the new expiration time to be set for the generated token.
-// The old token is contained in the header of this request, under the 'authorization' field.
+/**
+ * Contains the new expiration time to be set for the generated token.
+ *
+ * The old token is contained in the header of this request, under the 'authorization' field.
+ */
 message RefreshTokenRequest {
     // THe new expiration time for the token, in linux timestamp format.
     int64 expiration_time = 1;
 }
 
-// Import a user from an existing public/secret key pair.
-// A signature of the public key concatenated with the current timestamp at the time of signing is required to verify the user's possesion of the secret key and to prevent from replay attacks.
+/** 
+ * Import a user from an existing public/secret key pair.
+ *
+ * A signature of the public key concatenated with the current timestamp at the time of signing is required to verify the user's possesion of the secret key and to prevent from replay attacks.
+ */
 message ImportUserRequest {
     // The public key of the user, serialized in compact (default) form.
     bytes public_key = 1;
