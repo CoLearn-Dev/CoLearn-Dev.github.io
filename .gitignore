@@ -1,3 +1,4 @@
-/target
-/.idea
-admin_token.txt
+/public
+resources/
+node_modules/
+.hugo_build.lock
