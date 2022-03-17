@@ -3,22 +3,19 @@
  linkTitle: "Protocol Documentation" 
  weight: 8 
 --- 
+
 # Protocol Documentation
 <a name="top"></a>
 
 ## Table of Contents
 
-- [Protocol Documentation](#protocol-documentation)
-  - [Table of Contents](#table-of-contents)
-  - [dds.proto](#ddsproto)
-    - [ImportUserRequest](#importuserrequest)
-    - [Jwt](#jwt)
-    - [ReadKeysRequest](#readkeysrequest)
-    - [RefreshTokenRequest](#refreshtokenrequest)
-    - [StorageEntries](#storageentries)
-    - [StorageEntry](#storageentry)
-    - [DDS](#dds)
-  - [Scalar Value Types](#scalar-value-types)
+- [dds.proto](#dds-proto)
+    - [ImportUserRequest](#dds-ImportUserRequest)
+    - [Jwt](#dds-Jwt)
+    - [ReadKeysRequest](#dds-ReadKeysRequest)
+    - [RefreshTokenRequest](#dds-RefreshTokenRequest)
+    - [StorageEntries](#dds-StorageEntries)
+    - [StorageEntry](#dds-StorageEntry)
   
     - [DDS](#dds-DDS)
   
