@@ -1,7 +1,7 @@
 
 ---
-title: "API Documentation"
-linkTitle: "API Documentation"
+title: ""
+linkTitle: "Protocol Documentation"
 weight: 8
 date: 2017-01-04
 ---
