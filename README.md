@@ -1,4 +1,4 @@
-# Docsy Example
+# Docsy Example 
 
 [Docsy][] is a [Hugo theme][] for technical documentation sites, providing easy
 site navigation, structure, and more. This **Docsy Example Project** uses the
