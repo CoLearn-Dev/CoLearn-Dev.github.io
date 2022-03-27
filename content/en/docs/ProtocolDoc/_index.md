@@ -77,9 +77,9 @@ A signature of the public key concatenated with the current timestamp at the tim
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | public_key | [bytes](#bytes) |  | The public key of the user, serialized in compact (default) form. |
-| signature_timestamp | [int64](#int64) |  | Linux timestamp of time of signature, in linux timestamp format. Te signature should be generated within 10 minutes of the tiem of signature verification |
+| signature_timestamp | [int64](#int64) |  | Unix timestamp of time of signature, in unix timestamp format. Te signature should be generated within 10 minutes of the tiem of signature verification |
 | signature | [bytes](#bytes) |  | The EDCSA compact signature of the public key concatenated with little endian encoding of current time. This serves as a challenge response for the user to prevent from replay attacks. |
-| expiration_time | [int64](#int64) |  | The expiration time for the token to be generated, in linux timestamp format. |
+| expiration_time | [int64](#int64) |  | The expiration time for the token to be generated, in unix timestamp format. |
 
 
 
@@ -141,9 +141,6 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT the user&#39;s
 | ----- | ---- | ----- | ----------- |
 | user_id | [string](#string) |  | The user id of this participant. |
 | ptype | [string](#string) |  | Type of this participant in the protocol. |
-| core_addr | [string](#string) |  | Address of core of this participant.
-
-or registry |
 
 
 
@@ -176,7 +173,7 @@ The old token is contained in the header of this request, under the &#39;authori
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| expiration_time | [int64](#int64) |  | THe new expiration time for the token, in linux timestamp format. |
+| expiration_time | [int64](#int64) |  | The new expiration time for the token, in unix timestamp format. |
 
 
 
@@ -261,6 +258,7 @@ An entry in the DDS storage.
 | parent_task | [string](#string) |  | The task id of the parent task. |
 | decisions | [Decision](#dds-Decision) | repeated | The list of signatures (align with participants). |
 | status | [string](#string) |  | The status of this task. |
+| expiration_time | [int64](#int64) |  | The expiration time for waiting for others&#39; decisions, in unix timestamp format. |
 
 
 
