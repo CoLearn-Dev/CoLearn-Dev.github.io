@@ -6,6 +6,8 @@ weight: 20
 menu:
   main:
     weight: 20
+description: >
+  See some examples of using DDS!
 ---
 
 
