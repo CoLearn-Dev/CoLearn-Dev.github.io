@@ -1,10 +1,11 @@
 ---
- title: "" 
- linkTitle: "Protocol Documentation" 
+ title: "gRPC Service Specification" 
+ linkTitle: "gRPC Service Specification" 
  weight: 8 
+ description: > 
+ Read the documentation for gRPC data types and service interfaces. 
 --- 
 
-# Protocol Documentation
 <a name="top"></a>
 
 ## Table of Contents
