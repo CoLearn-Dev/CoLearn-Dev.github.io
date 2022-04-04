@@ -11,6 +11,8 @@
 ## Table of Contents
 
 - [dds.proto](#dds-proto)
+    - [DDSInternalTaskIDList](#dds-DDSInternalTaskIDList)
+    - [DDSInternalTaskIDWithKeyPath](#dds-DDSInternalTaskIDWithKeyPath)
     - [Decision](#dds-Decision)
     - [Empty](#dds-Empty)
     - [ImportUserRequest](#dds-ImportUserRequest)
@@ -20,10 +22,10 @@
     - [Participant](#dds-Participant)
     - [ReadKeysRequest](#dds-ReadKeysRequest)
     - [RefreshTokenRequest](#dds-RefreshTokenRequest)
-    - [RegisterProtocolRequest](#dds-RegisterProtocolRequest)
     - [StorageEntries](#dds-StorageEntries)
     - [StorageEntry](#dds-StorageEntry)
-    - [SubscribeMQRequest](#dds-SubscribeMQRequest)
+    - [SubscribeRequest](#dds-SubscribeRequest)
+    - [SubscriptionMessage](#dds-SubscriptionMessage)
     - [Task](#dds-Task)
   
     - [DDS](#dds-DDS)
@@ -36,6 +38,37 @@
 <p align="right"><a href="#top">Top</a></p>
 
 ## dds.proto
+
+
+
+<a name="dds-DDSInternalTaskIDList"></a>
+
+### DDSInternalTaskIDList
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| task_ids_with_key_paths | [DDSInternalTaskIDWithKeyPath](#dds-DDSInternalTaskIDWithKeyPath) | repeated |  |
+
+
+
+
+
+
+<a name="dds-DDSInternalTaskIDWithKeyPath"></a>
+
+### DDSInternalTaskIDWithKeyPath
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| key_path | [string](#string) |  |  |
+| task_id | [string](#string) |  |  |
+
+
+
 
 
 
@@ -181,22 +214,6 @@ The old token is contained in the header of this request, under the &#39;authori
 
 
 
-<a name="dds-RegisterProtocolRequest"></a>
-
-### RegisterProtocolRequest
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| protocol_name | [string](#string) |  | The name of this protocol. |
-| ptypes | [string](#string) | repeated | The list of possible types of participants. |
-
-
-
-
-
-
 <a name="dds-StorageEntries"></a>
 
 ### StorageEntries
@@ -229,15 +246,33 @@ An entry in the DDS storage.
 
 
 
-<a name="dds-SubscribeMQRequest"></a>
+<a name="dds-SubscribeRequest"></a>
 
-### SubscribeMQRequest
+### SubscribeRequest
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
-| routing_key | [string](#string) |  | routing_key to be subscribed. |
+| key_name | [string](#string) |  | The key_name of the entry to be subscribed. |
+| start_timestamp | [int64](#int64) |  | start_timestamp, in the same format as the timestamp in the storage. Not in unix timestamp format. |
+
+
+
+
+
+
+<a name="dds-SubscriptionMessage"></a>
+
+### SubscriptionMessage
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| change_type | [string](#string) |  | The type of change of the storage entry. valid values: create/update/delete/in-storage. |
+| key_path | [string](#string) |  | The key_path of the storage entry. |
+| payload | [bytes](#bytes) |  | The payload (value) of the storage entry. |
 
 
 
@@ -289,9 +324,9 @@ An entry in the DDS storage.
 | CreateTask | [Task](#dds-Task) | [Task](#dds-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Send task status to MQ. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT. |
 | ConfirmTask | [Task](#dds-Task) | [Empty](#dds-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Send task status to MQ. In request, task_id is required. Require user JWT. |
 | FinishTask | [Task](#dds-Task) | [Empty](#dds-Empty) | A participant finishes a task. Send task status to MQ. In request, task_id is required. Require user JWT. |
-| RegisterProtocol | [RegisterProtocolRequest](#dds-RegisterProtocolRequest) | [Empty](#dds-Empty) | Register a protocol on DDS. Create queues of different task statuses for this protocol in MQ. Require user JWT. |
 | RequestMQInfo | [Empty](#dds-Empty) | [MQURI](#dds-MQURI) | Request the URI of MQ. Return MQ Information for this user. Require user JWT. |
-| SubscribeMQ | [SubscribeMQRequest](#dds-SubscribeMQRequest) | [MQQueueName](#dds-MQQueueName) | Subscribe to specified messages from MQ. TODO Require user JWT. |
+| Subscribe | [SubscribeRequest](#dds-SubscribeRequest) | [MQQueueName](#dds-MQQueueName) | Subscribe to changes in the storage. It will let you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
+| Unsubscribe | [MQQueueName](#dds-MQQueueName) | [Empty](#dds-Empty) | Unsubscribe the changes in the storage. Require user JWT. |
 | InterCoreSyncTask | [Task](#dds-Task) | [Empty](#dds-Empty) | InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants&#39; decisions are received and it is the initiator, sync the decisions to other participants. If all participants&#39; decisions are received, send task status to MQ. |
 
  
