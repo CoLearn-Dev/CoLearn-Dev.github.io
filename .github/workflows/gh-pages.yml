@@ -1,10 +1,6 @@
 name: GitHub Pages
 
 on:
-  workflow_run:
-    workflows: [Doc Generator]
-    types: [completed]
-    branches: [docgen, main]
   push:
     branches:
       - main  # Set a branch to deploy
