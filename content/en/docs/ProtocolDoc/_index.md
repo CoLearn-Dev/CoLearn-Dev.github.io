@@ -3,30 +3,33 @@
  linkTitle: "gRPC Service Specification" 
  weight: 8 
  description: > 
-	 Read the documentation for gRPC data types and service interfaces. 
+  Read the documentation for gRPC data types and service interfaces. 
 --- 
 
 <a name="top"></a>
 
 ## Table of Contents
 
-- [dds.proto](#dds-proto)
-    - [DDSInternalTaskIDList](#dds-DDSInternalTaskIDList)
-    - [DDSInternalTaskIDWithKeyPath](#dds-DDSInternalTaskIDWithKeyPath)
-    - [Decision](#dds-Decision)
-    - [Empty](#dds-Empty)
-    - [ImportUserRequest](#dds-ImportUserRequest)
-    - [Jwt](#dds-Jwt)
-    - [MQQueueName](#dds-MQQueueName)
-    - [MQURI](#dds-MQURI)
-    - [Participant](#dds-Participant)
-    - [ReadKeysRequest](#dds-ReadKeysRequest)
-    - [RefreshTokenRequest](#dds-RefreshTokenRequest)
-    - [StorageEntries](#dds-StorageEntries)
-    - [StorageEntry](#dds-StorageEntry)
-    - [SubscribeRequest](#dds-SubscribeRequest)
-    - [SubscriptionMessage](#dds-SubscriptionMessage)
-    - [Task](#dds-Task)
+- [Table of Contents](#table-of-contents)
+- [dds.proto](#ddsproto)
+  - [DDSInternalTaskIDList](#ddsinternaltaskidlist)
+  - [DDSInternalTaskIDWithKeyPath](#ddsinternaltaskidwithkeypath)
+  - [Decision](#decision)
+  - [Empty](#empty)
+  - [ImportUserRequest](#importuserrequest)
+  - [Jwt](#jwt)
+  - [MQQueueName](#mqqueuename)
+  - [MQURI](#mquri)
+  - [Participant](#participant)
+  - [ReadKeysRequest](#readkeysrequest)
+  - [RefreshTokenRequest](#refreshtokenrequest)
+  - [StorageEntries](#storageentries)
+  - [StorageEntry](#storageentry)
+  - [SubscribeRequest](#subscriberequest)
+  - [SubscriptionMessage](#subscriptionmessage)
+  - [Task](#task)
+  - [DDS](#dds)
+- [Scalar Value Types](#scalar-value-types)
   
     - [DDS](#dds-DDS)
   
