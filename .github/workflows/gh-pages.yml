@@ -5,6 +5,8 @@ on:
     branches:
       - main  # Set a branch to deploy
   pull_request:
+  repository_dispatch:
+    types: [proto_update]
 
 jobs:
   deploy:
