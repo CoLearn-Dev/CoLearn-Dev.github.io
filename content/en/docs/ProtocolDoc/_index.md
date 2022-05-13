@@ -3,31 +3,34 @@
  linkTitle: "gRPC Service Specification" 
  weight: 8 
  description: > 
-	 Read the documentation for gRPC data types and service interfaces. 
+  Read the documentation for gRPC data types and service interfaces. 
 --- 
 
 <a name="top"></a>
 
 ## Table of Contents
 
-- [colink.proto](#colink-proto)
-    - [CoLinkInternalTaskIDList](#colink-CoLinkInternalTaskIDList)
-    - [CoLinkInternalTaskIDWithKeyPath](#colink-CoLinkInternalTaskIDWithKeyPath)
-    - [ConfirmTaskRequest](#colink-ConfirmTaskRequest)
-    - [CoreInfo](#colink-CoreInfo)
-    - [Decision](#colink-Decision)
-    - [Empty](#colink-Empty)
-    - [Jwt](#colink-Jwt)
-    - [MQQueueName](#colink-MQQueueName)
-    - [Participant](#colink-Participant)
-    - [ReadKeysRequest](#colink-ReadKeysRequest)
-    - [RefreshTokenRequest](#colink-RefreshTokenRequest)
-    - [StorageEntries](#colink-StorageEntries)
-    - [StorageEntry](#colink-StorageEntry)
-    - [SubscribeRequest](#colink-SubscribeRequest)
-    - [SubscriptionMessage](#colink-SubscriptionMessage)
-    - [Task](#colink-Task)
-    - [UserConsent](#colink-UserConsent)
+- [Table of Contents](#table-of-contents)
+- [colink.proto](#colinkproto)
+  - [CoLinkInternalTaskIDList](#colinkinternaltaskidlist)
+  - [CoLinkInternalTaskIDWithKeyPath](#colinkinternaltaskidwithkeypath)
+  - [ConfirmTaskRequest](#confirmtaskrequest)
+  - [CoreInfo](#coreinfo)
+  - [Decision](#decision)
+  - [Empty](#empty)
+  - [Jwt](#jwt)
+  - [MQQueueName](#mqqueuename)
+  - [Participant](#participant)
+  - [ReadKeysRequest](#readkeysrequest)
+  - [RefreshTokenRequest](#refreshtokenrequest)
+  - [StorageEntries](#storageentries)
+  - [StorageEntry](#storageentry)
+  - [SubscribeRequest](#subscriberequest)
+  - [SubscriptionMessage](#subscriptionmessage)
+  - [Task](#task)
+  - [UserConsent](#userconsent)
+  - [CoLink](#colink)
+- [Scalar Value Types](#scalar-value-types)
   
     - [CoLink](#colink-CoLink)
   
