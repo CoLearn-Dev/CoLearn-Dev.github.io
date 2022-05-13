@@ -962,16 +962,16 @@ curl http://localhost:3100/aggregate
 <p><a href=#table-of-contents>Table of Contents</a></p>
 </li>
 <li>
-<p><a href=#ddsproto>dds.proto</a></p>
+<p><a href=#colinkproto>colink.proto</a></p>
 <ul>
-<li><a href=#ddsinternaltaskidlist>DDSInternalTaskIDList</a></li>
-<li><a href=#ddsinternaltaskidwithkeypath>DDSInternalTaskIDWithKeyPath</a></li>
+<li><a href=#colinkinternaltaskidlist>CoLinkInternalTaskIDList</a></li>
+<li><a href=#colinkinternaltaskidwithkeypath>CoLinkInternalTaskIDWithKeyPath</a></li>
+<li><a href=#confirmtaskrequest>ConfirmTaskRequest</a></li>
+<li><a href=#coreinfo>CoreInfo</a></li>
 <li><a href=#decision>Decision</a></li>
 <li><a href=#empty>Empty</a></li>
-<li><a href=#importuserrequest>ImportUserRequest</a></li>
 <li><a href=#jwt>Jwt</a></li>
 <li><a href=#mqqueuename>MQQueueName</a></li>
-<li><a href=#mquri>MQURI</a></li>
 <li><a href=#participant>Participant</a></li>
 <li><a href=#readkeysrequest>ReadKeysRequest</a></li>
 <li><a href=#refreshtokenrequest>RefreshTokenRequest</a></li>
@@ -980,24 +980,25 @@ curl http://localhost:3100/aggregate
 <li><a href=#subscriberequest>SubscribeRequest</a></li>
 <li><a href=#subscriptionmessage>SubscriptionMessage</a></li>
 <li><a href=#task>Task</a></li>
-<li><a href=#dds>DDS</a></li>
+<li><a href=#userconsent>UserConsent</a></li>
+<li><a href=#colink>CoLink</a></li>
 </ul>
 </li>
 <li>
 <p><a href=#scalar-value-types>Scalar Value Types</a></p>
 <ul>
-<li><a href=#dds-DDS>DDS</a></li>
+<li><a href=#colink-CoLink>CoLink</a></li>
 </ul>
 </li>
 <li>
 <p><a href=#scalar-value-types>Scalar Value Types</a></p>
 </li>
 </ul>
-<p><a name=dds-proto></a></p>
+<p><a name=colink-proto></a></p>
 <p align=right><a href=#top>Top</a></p>
-<h2 id=ddsproto>dds.proto</h2>
-<p><a name=dds-DDSInternalTaskIDList></a></p>
-<h3 id=ddsinternaltaskidlist>DDSInternalTaskIDList</h3>
+<h2 id=colinkproto>colink.proto</h2>
+<p><a name=colink-CoLinkInternalTaskIDList></a></p>
+<h3 id=colinkinternaltaskidlist>CoLinkInternalTaskIDList</h3>
 <table>
 <thead>
 <tr>
@@ -1010,14 +1011,14 @@ curl http://localhost:3100/aggregate
 <tbody>
 <tr>
 <td>task_ids_with_key_paths</td>
-<td><a href=#dds-DDSInternalTaskIDWithKeyPath>DDSInternalTaskIDWithKeyPath</a></td>
+<td><a href=#colink-CoLinkInternalTaskIDWithKeyPath>CoLinkInternalTaskIDWithKeyPath</a></td>
 <td>repeated</td>
 <td></td>
 </tr>
 </tbody>
 </table>
-<p><a name=dds-DDSInternalTaskIDWithKeyPath></a></p>
-<h3 id=ddsinternaltaskidwithkeypath>DDSInternalTaskIDWithKeyPath</h3>
+<p><a name=colink-CoLinkInternalTaskIDWithKeyPath></a></p>
+<h3 id=colinkinternaltaskidwithkeypath>CoLinkInternalTaskIDWithKeyPath</h3>
 <table>
 <thead>
 <tr>
@@ -1042,7 +1043,59 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-Decision></a></p>
+<p><a name=colink-ConfirmTaskRequest></a></p>
+<h3 id=confirmtaskrequest>ConfirmTaskRequest</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Label</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>task_id</td>
+<td><a href=#string>string</a></td>
+<td></td>
+<td>The id of this task.</td>
+</tr>
+<tr>
+<td>decision</td>
+<td><a href=#colink-Decision>Decision</a></td>
+<td></td>
+<td>The decision of this task.</td>
+</tr>
+</tbody>
+</table>
+<p><a name=colink-CoreInfo></a></p>
+<h3 id=coreinfo>CoreInfo</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Label</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mq_uri</td>
+<td><a href=#string>string</a></td>
+<td></td>
+<td>The URI of MQ.</td>
+</tr>
+<tr>
+<td>core_public_key</td>
+<td><a href=#bytes>bytes</a></td>
+<td></td>
+<td>The public key of the core, serialized in compact (default) form.</td>
+</tr>
+</tbody>
+</table>
+<p><a name=colink-Decision></a></p>
 <h3 id=decision>Decision</h3>
 <table>
 <thead>
@@ -1078,51 +1131,23 @@ curl http://localhost:3100/aggregate
 <td></td>
 <td>Signature</td>
 </tr>
+<tr>
+<td>core_public_key</td>
+<td><a href=#bytes>bytes</a></td>
+<td></td>
+<td>Core's public key</td>
+</tr>
+<tr>
+<td>user_consent</td>
+<td><a href=#colink-UserConsent>UserConsent</a></td>
+<td></td>
+<td>User consent</td>
+</tr>
 </tbody>
 </table>
-<p><a name=dds-Empty></a></p>
+<p><a name=colink-Empty></a></p>
 <h3 id=empty>Empty</h3>
-<p><a name=dds-ImportUserRequest></a></p>
-<h3 id=importuserrequest>ImportUserRequest</h3>
-<p>Import a user from an existing public/secret key pair.</p>
-<p>A signature of the public key concatenated with the current timestamp at the time of signing is required to verify the user's possesion of the secret key and to prevent from replay attacks.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Label</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>public_key</td>
-<td><a href=#bytes>bytes</a></td>
-<td></td>
-<td>The public key of the user, serialized in compact (default) form.</td>
-</tr>
-<tr>
-<td>signature_timestamp</td>
-<td><a href=#int64>int64</a></td>
-<td></td>
-<td>Unix timestamp of time of signature, in unix timestamp format. The signature should be generated within 10 minutes of the time of signature verification</td>
-</tr>
-<tr>
-<td>signature</td>
-<td><a href=#bytes>bytes</a></td>
-<td></td>
-<td>The EDCSA compact signature of the public key concatenated with little endian encoding of current time. This serves as a challenge response for the user to prevent from replay attacks.</td>
-</tr>
-<tr>
-<td>expiration_time</td>
-<td><a href=#int64>int64</a></td>
-<td></td>
-<td>The expiration time for the token to be generated, in unix timestamp format.</td>
-</tr>
-</tbody>
-</table>
-<p><a name=dds-Jwt></a></p>
+<p><a name=colink-Jwt></a></p>
 <h3 id=jwt>Jwt</h3>
 <p>JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.</p>
 <table>
@@ -1143,7 +1168,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-MQQueueName></a></p>
+<p><a name=colink-MQQueueName></a></p>
 <h3 id=mqqueuename>MQQueueName</h3>
 <table>
 <thead>
@@ -1163,27 +1188,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-MQURI></a></p>
-<h3 id=mquri>MQURI</h3>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Label</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>uri</td>
-<td><a href=#string>string</a></td>
-<td></td>
-<td>The URI of MQ.</td>
-</tr>
-</tbody>
-</table>
-<p><a name=dds-Participant></a></p>
+<p><a name=colink-Participant></a></p>
 <h3 id=participant>Participant</h3>
 <table>
 <thead>
@@ -1209,7 +1214,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-ReadKeysRequest></a></p>
+<p><a name=colink-ReadKeysRequest></a></p>
 <h3 id=readkeysrequest>ReadKeysRequest</h3>
 <table>
 <thead>
@@ -1235,7 +1240,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-RefreshTokenRequest></a></p>
+<p><a name=colink-RefreshTokenRequest></a></p>
 <h3 id=refreshtokenrequest>RefreshTokenRequest</h3>
 <p>Contains the new expiration time to be set for the generated token.</p>
 <p>The old token is contained in the header of this request, under the 'authorization' field.</p>
@@ -1257,7 +1262,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-StorageEntries></a></p>
+<p><a name=colink-StorageEntries></a></p>
 <h3 id=storageentries>StorageEntries</h3>
 <p>A list of entries.</p>
 <table>
@@ -1272,15 +1277,15 @@ curl http://localhost:3100/aggregate
 <tbody>
 <tr>
 <td>entries</td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
 <td>repeated</td>
 <td></td>
 </tr>
 </tbody>
 </table>
-<p><a name=dds-StorageEntry></a></p>
+<p><a name=colink-StorageEntry></a></p>
 <h3 id=storageentry>StorageEntry</h3>
-<p>An entry in the DDS storage.</p>
+<p>An entry in the CoLink storage.</p>
 <table>
 <thead>
 <tr>
@@ -1301,7 +1306,7 @@ curl http://localhost:3100/aggregate
 <td>key_path</td>
 <td><a href=#string>string</a></td>
 <td></td>
-<td>The path of this entry. May contain information about the user_id, application_id, key name, and the timestamp of the entry. Note that, unlike other timestamps used in the protocol, the timestamp in the key_path does not follow unix timestamp format</td>
+<td>The path of this entry. May contain information about the user_id, application_id, key name, and the timestamp of the entry. Note that, unlike other timestamps used in the protocol, the timestamp in the key_path is the number of <em>non-leap-nanoseconds</em> since January 1, 1970 UT, which is different from the unix timestamp.</td>
 </tr>
 <tr>
 <td>payload</td>
@@ -1311,7 +1316,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-SubscribeRequest></a></p>
+<p><a name=colink-SubscribeRequest></a></p>
 <h3 id=subscriberequest>SubscribeRequest</h3>
 <table>
 <thead>
@@ -1337,7 +1342,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-SubscriptionMessage></a></p>
+<p><a name=colink-SubscriptionMessage></a></p>
 <h3 id=subscriptionmessage>SubscriptionMessage</h3>
 <table>
 <thead>
@@ -1369,7 +1374,7 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-Task></a></p>
+<p><a name=colink-Task></a></p>
 <h3 id=task>Task</h3>
 <table>
 <thead>
@@ -1401,7 +1406,7 @@ curl http://localhost:3100/aggregate
 </tr>
 <tr>
 <td>participants</td>
-<td><a href=#dds-Participant>Participant</a></td>
+<td><a href=#colink-Participant>Participant</a></td>
 <td>repeated</td>
 <td>The list of participants (initiator should be placed first).</td>
 </tr>
@@ -1412,10 +1417,16 @@ curl http://localhost:3100/aggregate
 <td>The task id of the parent task.</td>
 </tr>
 <tr>
+<td>require_agreement</td>
+<td><a href=#bool>bool</a></td>
+<td></td>
+<td>Whether the task requires the signed decisions from all participants to start. If require_agreement=False, the task starts without confirming replies from others.</td>
+</tr>
+<tr>
 <td>decisions</td>
-<td><a href=#dds-Decision>Decision</a></td>
+<td><a href=#colink-Decision>Decision</a></td>
 <td>repeated</td>
-<td>The list of signatures (align with participants).</td>
+<td>The list of decisions (align with participants).</td>
 </tr>
 <tr>
 <td>status</td>
@@ -1431,8 +1442,50 @@ curl http://localhost:3100/aggregate
 </tr>
 </tbody>
 </table>
-<p><a name=dds-DDS></a></p>
-<h3 id=dds>DDS</h3>
+<p><a name=colink-UserConsent></a></p>
+<h3 id=userconsent>UserConsent</h3>
+<p>Import a user from an existing public/secret key pair.</p>
+<p>A signature by the user is required to verify the user's consent to let the core represent the user.</p>
+<p>The signature message is the concatenation of user public key, timestamp at the time of signing, expiration timestamp, and core public key.
+The signature will be saved in user's storage and get passed in inter-core communication, so other cores can ensure the core is representing the user by checking both public keys.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Label</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>public_key</td>
+<td><a href=#bytes>bytes</a></td>
+<td></td>
+<td>The public key of the user, serialized in compact (default) form.</td>
+</tr>
+<tr>
+<td>signature_timestamp</td>
+<td><a href=#int64>int64</a></td>
+<td></td>
+<td>Unix timestamp of time of signature, in unix timestamp format. The signature should be generated within 10 minutes of the time of signature verification</td>
+</tr>
+<tr>
+<td>expiration_timestamp</td>
+<td><a href=#int64>int64</a></td>
+<td></td>
+<td>The expiration timestamp for the token to be generated, and for the user consent, in unix timestamp format. We assume the JWT will have the same expiration time as the user consent.</td>
+</tr>
+<tr>
+<td>signature</td>
+<td><a href=#bytes>bytes</a></td>
+<td></td>
+<td>The ECDSA compact signature composed of user public key, timestamp at the time of signing, expiration timestamp, and core public key. The signature represents the user's consent to let the core represent the user by including the trusted core's public key.</td>
+</tr>
+</tbody>
+</table>
+<p><a name=colink-CoLink></a></p>
+<h3 id=colink>CoLink</h3>
 <table>
 <thead>
 <tr>
@@ -1445,87 +1498,87 @@ curl http://localhost:3100/aggregate
 <tbody>
 <tr>
 <td>RefreshToken</td>
-<td><a href=#dds-RefreshTokenRequest>RefreshTokenRequest</a></td>
-<td><a href=#dds-Jwt>Jwt</a></td>
+<td><a href=#colink-RefreshTokenRequest>RefreshTokenRequest</a></td>
+<td><a href=#colink-Jwt>Jwt</a></td>
 <td>Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh an admin token.</td>
 </tr>
 <tr>
 <td>ImportUser</td>
-<td><a href=#dds-ImportUserRequest>ImportUserRequest</a></td>
-<td><a href=#dds-Jwt>Jwt</a></td>
+<td><a href=#colink-UserConsent>UserConsent</a></td>
+<td><a href=#colink-Jwt>Jwt</a></td>
 <td>Generates a JWT from a user with a public/secret key pair. The generated JWT specify the user's role as a user, contains their user_id, which is a base64 encoding of the provided public key. Requires admin Jwt.</td>
 </tr>
 <tr>
 <td>CreateEntry</td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td>Creates an entry in DDS storage. In the entry passed in to the call, the <code>key_name</code> field must be nonempty. Every other field is is ignored. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td>Creates an entry in CoLink storage. In the entry passed in to the call, the <code>key_name</code> field must be nonempty. Every other field is is ignored. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
 </tr>
 <tr>
 <td>ReadEntries</td>
-<td><a href=#dds-StorageEntries>StorageEntries</a></td>
-<td><a href=#dds-StorageEntries>StorageEntries</a></td>
-<td>Retrieves entries from DDS storage. One and only one field among <code>key_name</code> and <code>key_path</code> is nonempty. If both are nonempty, an error is returned. If key_name is nonempty, returns the latest version of the entry with that key name. This is done by first obtaining the timestamp representing the latest version of the entry, and then retrieving the entry with that timestamp by including the timestamp in key_path. If key_path is nonempty, returns the entry with the corresponding key path. If you're looking for a specific version of an entry, use specify the timestamp inside the <code>key_path</code> field. In both cases, the key_name field is empty in the returned StorageEntry. key_path and payload are nonempty. If an entry is not found. An error is returned. Note that the returned order of the entries is NOT guaranteed to be the same as the order of the input. Requires user or admin JWT.</td>
+<td><a href=#colink-StorageEntries>StorageEntries</a></td>
+<td><a href=#colink-StorageEntries>StorageEntries</a></td>
+<td>Retrieves entries from CoLink storage. One and only one field among <code>key_name</code> and <code>key_path</code> is nonempty. If both are nonempty, an error is returned. If key_name is nonempty, returns the latest version of the entry with that key name. This is done by first obtaining the timestamp representing the latest version of the entry, and then retrieving the entry with that timestamp by including the timestamp in key_path. If key_path is nonempty, returns the entry with the corresponding key path. If you're looking for a specific version of an entry, use specify the timestamp inside the <code>key_path</code> field. In both cases, the key_name field is empty in the returned StorageEntry. key_path and payload are nonempty. If an entry is not found. An error is returned. Note that the returned order of the entries is NOT guaranteed to be the same as the order of the input. Requires user or admin JWT.</td>
 </tr>
 <tr>
 <td>UpdateEntry</td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td>Updates an entry in DDS storage. In the entry passed in to the call, the <code>key_name</code> field must be nonempty. Every other field is is ignored. Creates a new entry with the current timestamp in the key_path field. Sets the latest entry to current timestamp. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td>Updates an entry in CoLink storage. In the entry passed in to the call, the <code>key_name</code> field must be nonempty. Every other field is is ignored. Creates a new entry with the current timestamp in the key_path field. Sets the latest entry to current timestamp. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
 </tr>
 <tr>
 <td>DeleteEntry</td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td><a href=#dds-StorageEntry>StorageEntry</a></td>
-<td>Deletes an entry from DDS storage. Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current timestamp in the key_path field. Therefore the current timestamp points to nothing. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td><a href=#colink-StorageEntry>StorageEntry</a></td>
+<td>Deletes an entry from CoLink storage. Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current timestamp in the key_path field. Therefore the current timestamp points to nothing. Requires user or admin JWT. Returns a key_path with current timestamp included.</td>
 </tr>
 <tr>
 <td>ReadKeys</td>
-<td><a href=#dds-ReadKeysRequest>ReadKeysRequest</a></td>
-<td><a href=#dds-StorageEntries>StorageEntries</a></td>
-<td>Returns list of entries in DDS storage whose key_path starts with input prefix. Requires user or admin JWT.</td>
+<td><a href=#colink-ReadKeysRequest>ReadKeysRequest</a></td>
+<td><a href=#colink-StorageEntries>StorageEntries</a></td>
+<td>Returns list of entries in CoLink storage whose key_path starts with input prefix. Requires user or admin JWT.</td>
 </tr>
 <tr>
 <td>CreateTask</td>
-<td><a href=#dds-Task>Task</a></td>
-<td><a href=#dds-Task>Task</a></td>
+<td><a href=#colink-Task>Task</a></td>
+<td><a href=#colink-Task>Task</a></td>
 <td>An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Send task status to MQ. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT.</td>
 </tr>
 <tr>
 <td>ConfirmTask</td>
-<td><a href=#dds-Task>Task</a></td>
-<td><a href=#dds-Empty>Empty</a></td>
-<td>A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Send task status to MQ. In request, task_id is required. Require user JWT.</td>
+<td><a href=#colink-ConfirmTaskRequest>ConfirmTaskRequest</a></td>
+<td><a href=#colink-Empty>Empty</a></td>
+<td>A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Send task status to MQ. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT.</td>
 </tr>
 <tr>
 <td>FinishTask</td>
-<td><a href=#dds-Task>Task</a></td>
-<td><a href=#dds-Empty>Empty</a></td>
+<td><a href=#colink-Task>Task</a></td>
+<td><a href=#colink-Empty>Empty</a></td>
 <td>A participant finishes a task. Send task status to MQ. In request, task_id is required. Require user JWT.</td>
 </tr>
 <tr>
-<td>RequestMQInfo</td>
-<td><a href=#dds-Empty>Empty</a></td>
-<td><a href=#dds-MQURI>MQURI</a></td>
-<td>Request the URI of MQ. Return MQ Information for this user. Require user JWT.</td>
+<td>RequestCoreInfo</td>
+<td><a href=#colink-Empty>Empty</a></td>
+<td><a href=#colink-CoreInfo>CoreInfo</a></td>
+<td>Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when request includes jwt, the uri of mq will be returned.</td>
 </tr>
 <tr>
 <td>Subscribe</td>
-<td><a href=#dds-SubscribeRequest>SubscribeRequest</a></td>
-<td><a href=#dds-MQQueueName>MQQueueName</a></td>
+<td><a href=#colink-SubscribeRequest>SubscribeRequest</a></td>
+<td><a href=#colink-MQQueueName>MQQueueName</a></td>
 <td>Subscribe to changes in the storage. It will let you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT.</td>
 </tr>
 <tr>
 <td>Unsubscribe</td>
-<td><a href=#dds-MQQueueName>MQQueueName</a></td>
-<td><a href=#dds-Empty>Empty</a></td>
+<td><a href=#colink-MQQueueName>MQQueueName</a></td>
+<td><a href=#colink-Empty>Empty</a></td>
 <td>Unsubscribe the changes in the storage. Require user JWT.</td>
 </tr>
 <tr>
 <td>InterCoreSyncTask</td>
-<td><a href=#dds-Task>Task</a></td>
-<td><a href=#dds-Empty>Empty</a></td>
-<td>InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants' decisions are received and it is the initiator, sync the decisions to other participants. If all participants' decisions are received, send task status to MQ.</td>
+<td><a href=#colink-Task>Task</a></td>
+<td><a href=#colink-Empty>Empty</a></td>
+<td>InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants' decisions are received and it is the initiator, sync the decisions to other participants. If all participants' decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists.</td>
 </tr>
 </tbody>
 </table>
