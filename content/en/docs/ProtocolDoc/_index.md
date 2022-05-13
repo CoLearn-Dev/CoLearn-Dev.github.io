@@ -3,7 +3,7 @@
  linkTitle: "gRPC Service Specification" 
  weight: 8 
  description: > 
- Read the documentation for gRPC data types and service interfaces. 
+  Read the documentation for gRPC data types and service interfaces. 
 --- 
 
 <a name="top"></a>
