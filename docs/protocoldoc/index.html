@@ -126,11 +126,11 @@
 <li><a href=#coreinfo>CoreInfo</a></li>
 <li><a href=#decision>Decision</a></li>
 <li><a href=#empty>Empty</a></li>
+<li><a href=#generatetokenrequest>GenerateTokenRequest</a></li>
 <li><a href=#jwt>Jwt</a></li>
 <li><a href=#mqqueuename>MQQueueName</a></li>
 <li><a href=#participant>Participant</a></li>
 <li><a href=#readkeysrequest>ReadKeysRequest</a></li>
-<li><a href=#refreshtokenrequest>RefreshTokenRequest</a></li>
 <li><a href=#storageentries>StorageEntries</a></li>
 <li><a href=#storageentry>StorageEntry</a></li>
 <li><a href=#subscriberequest>SubscribeRequest</a></li>
@@ -185,6 +185,9 @@
 <p><a href=#colink-Empty>Empty</a></p>
 </li>
 <li>
+<p><a href=#colink-GenerateTokenRequest>GenerateTokenRequest</a></p>
+</li>
+<li>
 <p><a href=#colink-Jwt>Jwt</a></p>
 </li>
 <li>
@@ -195,9 +198,6 @@
 </li>
 <li>
 <p><a href=#colink-ReadKeysRequest>ReadKeysRequest</a></p>
-</li>
-<li>
-<p><a href=#colink-RefreshTokenRequest>RefreshTokenRequest</a></p>
 </li>
 <li>
 <p><a href=#colink-StorageEntries>StorageEntries</a></p>
@@ -379,6 +379,34 @@
 </table>
 <p><a name=colink-Empty></a></p>
 <h3 id=empty>Empty</h3>
+<p><a name=colink-GenerateTokenRequest></a></p>
+<h3 id=generatetokenrequest>GenerateTokenRequest</h3>
+<p>Contains the new expiration time to be set for the generated token.</p>
+<p>The old token is contained in the header of this request, under the 'authorization' field.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Label</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>expiration_time</td>
+<td><a href=#int64>int64</a></td>
+<td></td>
+<td>The new expiration time for the token, in unix timestamp format.</td>
+</tr>
+<tr>
+<td>privilege</td>
+<td><a href=#string>string</a></td>
+<td></td>
+<td>The privilege of the generated jwt.</td>
+</tr>
+</tbody>
+</table>
 <p><a name=colink-Jwt></a></p>
 <h3 id=jwt>Jwt</h3>
 <p>JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's role, user_id - which is the base64 encoding of the public key - and the expiration time.</p>
@@ -439,10 +467,10 @@
 <td>The user id of this participant.</td>
 </tr>
 <tr>
-<td>ptype</td>
+<td>role</td>
 <td><a href=#string>string</a></td>
 <td></td>
-<td>Type of this participant in the protocol.</td>
+<td>Role of this participant in the protocol.</td>
 </tr>
 </tbody>
 </table>
@@ -469,28 +497,6 @@
 <td><a href=#bool>bool</a></td>
 <td></td>
 <td></td>
-</tr>
-</tbody>
-</table>
-<p><a name=colink-RefreshTokenRequest></a></p>
-<h3 id=refreshtokenrequest>RefreshTokenRequest</h3>
-<p>Contains the new expiration time to be set for the generated token.</p>
-<p>The old token is contained in the header of this request, under the 'authorization' field.</p>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Type</th>
-<th>Label</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>expiration_time</td>
-<td><a href=#int64>int64</a></td>
-<td></td>
-<td>The new expiration time for the token, in unix timestamp format.</td>
 </tr>
 </tbody>
 </table>
@@ -729,8 +735,8 @@ The signature will be saved in user's storage and get passed in inter-core commu
 </thead>
 <tbody>
 <tr>
-<td>RefreshToken</td>
-<td><a href=#colink-RefreshTokenRequest>RefreshTokenRequest</a></td>
+<td>GenerateToken</td>
+<td><a href=#colink-GenerateTokenRequest>GenerateTokenRequest</a></td>
 <td><a href=#colink-Jwt>Jwt</a></td>
 <td>Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh an host JWT.</td>
 </tr>
@@ -774,19 +780,19 @@ The signature will be saved in user's storage and get passed in inter-core commu
 <td>CreateTask</td>
 <td><a href=#colink-Task>Task</a></td>
 <td><a href=#colink-Task>Task</a></td>
-<td>An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Send task status to MQ. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT.</td>
+<td>An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Update task status in storage. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT.</td>
 </tr>
 <tr>
 <td>ConfirmTask</td>
 <td><a href=#colink-ConfirmTaskRequest>ConfirmTaskRequest</a></td>
 <td><a href=#colink-Empty>Empty</a></td>
-<td>A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Send task status to MQ. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT.</td>
+<td>A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Update task status in storage. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT.</td>
 </tr>
 <tr>
 <td>FinishTask</td>
 <td><a href=#colink-Task>Task</a></td>
 <td><a href=#colink-Empty>Empty</a></td>
-<td>A participant finishes a task. Send task status to MQ. In request, task_id is required. Require user JWT.</td>
+<td>A participant finishes a task. Update task status in storage. In request, task_id is required. Require user JWT.</td>
 </tr>
 <tr>
 <td>RequestCoreInfo</td>
@@ -810,7 +816,7 @@ The signature will be saved in user's storage and get passed in inter-core commu
 <td>InterCoreSyncTask</td>
 <td><a href=#colink-Task>Task</a></td>
 <td><a href=#colink-Empty>Empty</a></td>
-<td>InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants' decisions are received and it is the initiator, sync the decisions to other participants. If all participants' decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists.</td>
+<td>InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants' decisions are received and it is the initiator, sync the decisions to other participants. If all participants' decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists. Require guest or user JWT.</td>
 </tr>
 </tbody>
 </table>
@@ -1000,8 +1006,8 @@ The signature will be saved in user's storage and get passed in inter-core commu
 <div class=section-index>
 </div>
 <div class="text-muted mt-5 pt-3 border-top">
-Last modified July 1, 2022: <a href=https://github.com/camelop/dds-dev/commit/2c2ac8847975a86372220bd322373e8c34e4d6fe>
-2c2ac88</a>
+Last modified July 19, 2022: <a href=https://github.com/camelop/dds-dev/commit/537585372f62851dc66fd923b3387d60b6e0b0a0>
+5375853</a>
 </div>
 </div>
 </main>
