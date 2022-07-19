@@ -17,11 +17,11 @@
     - [CoreInfo](#colink-CoreInfo)
     - [Decision](#colink-Decision)
     - [Empty](#colink-Empty)
+    - [GenerateTokenRequest](#colink-GenerateTokenRequest)
     - [Jwt](#colink-Jwt)
     - [MQQueueName](#colink-MQQueueName)
     - [Participant](#colink-Participant)
     - [ReadKeysRequest](#colink-ReadKeysRequest)
-    - [RefreshTokenRequest](#colink-RefreshTokenRequest)
     - [StorageEntries](#colink-StorageEntries)
     - [StorageEntry](#colink-StorageEntry)
     - [SubscribeRequest](#colink-SubscribeRequest)
@@ -135,6 +135,24 @@
 
 
 
+<a name="colink-GenerateTokenRequest"></a>
+
+### GenerateTokenRequest
+Contains the new expiration time to be set for the generated token.
+
+The old token is contained in the header of this request, under the &#39;authorization&#39; field.
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| expiration_time | [int64](#int64) |  | The new expiration time for the token, in unix timestamp format. |
+| privilege | [string](#string) |  | The privilege of the generated jwt. |
+
+
+
+
+
+
 <a name="colink-Jwt"></a>
 
 ### Jwt
@@ -174,7 +192,7 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT the user&#39;s
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | user_id | [string](#string) |  | The user id of this participant. |
-| ptype | [string](#string) |  | Type of this participant in the protocol. |
+| role | [string](#string) |  | Role of this participant in the protocol. |
 
 
 
@@ -191,23 +209,6 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT the user&#39;s
 | ----- | ---- | ----- | ----------- |
 | prefix | [string](#string) |  | The prefix of the key_path of the entries to be retrieved. |
 | include_history | [bool](#bool) |  |  |
-
-
-
-
-
-
-<a name="colink-RefreshTokenRequest"></a>
-
-### RefreshTokenRequest
-Contains the new expiration time to be set for the generated token.
-
-The old token is contained in the header of this request, under the &#39;authorization&#39; field.
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| expiration_time | [int64](#int64) |  | The new expiration time for the token, in unix timestamp format. |
 
 
 
@@ -338,20 +339,20 @@ The signature will be saved in user&#39;s storage and get passed in inter-core c
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| RefreshToken | [RefreshTokenRequest](#colink-RefreshTokenRequest) | [Jwt](#colink-Jwt) | Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh an host JWT. |
+| GenerateToken | [GenerateTokenRequest](#colink-GenerateTokenRequest) | [Jwt](#colink-Jwt) | Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh an host JWT. |
 | ImportUser | [UserConsent](#colink-UserConsent) | [Jwt](#colink-Jwt) | Generates a JWT from a user with a public/secret key pair. The generated JWT specifies the user&#39;s role as a user, contains their user_id, which is a base64 encoding of the provided public key. Requires host JWT. |
 | CreateEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Creates an entry in CoLink storage. In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | ReadEntries | [StorageEntries](#colink-StorageEntries) | [StorageEntries](#colink-StorageEntries) | Retrieves entries from CoLink storage. One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned. If key_name is nonempty, returns the latest version of the entry with that key name. This is done by first obtaining the timestamp representing the latest version of the entry, and then retrieving the entry with that timestamp by including the timestamp in key_path. If key_path is nonempty, returns the entry with the corresponding key path. If you&#39;re looking for a specific version of an entry, use specify the timestamp inside the `key_path` field. In both cases, the key_name field is empty in the returned StorageEntry. key_path and payload are nonempty. If an entry is not found. An error is returned. Note that the returned order of the entries is NOT guaranteed to be the same as the order of the input. Requires user or host JWT. |
 | UpdateEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Updates an entry in CoLink storage. In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored. Creates a new entry with the current timestamp in the key_path field. Sets the latest entry to current timestamp. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | DeleteEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Deletes an entry from CoLink storage. Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current timestamp in the key_path field. Therefore the current timestamp points to nothing. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | ReadKeys | [ReadKeysRequest](#colink-ReadKeysRequest) | [StorageEntries](#colink-StorageEntries) | Returns list of entries in CoLink storage whose key_path starts with input prefix. Requires user or host JWT. |
-| CreateTask | [Task](#colink-Task) | [Task](#colink-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Send task status to MQ. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT. |
-| ConfirmTask | [ConfirmTaskRequest](#colink-ConfirmTaskRequest) | [Empty](#colink-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Send task status to MQ. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT. |
-| FinishTask | [Task](#colink-Task) | [Empty](#colink-Empty) | A participant finishes a task. Send task status to MQ. In request, task_id is required. Require user JWT. |
+| CreateTask | [Task](#colink-Task) | [Task](#colink-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Update task status in storage. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT. |
+| ConfirmTask | [ConfirmTaskRequest](#colink-ConfirmTaskRequest) | [Empty](#colink-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Update task status in storage. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT. |
+| FinishTask | [Task](#colink-Task) | [Empty](#colink-Empty) | A participant finishes a task. Update task status in storage. In request, task_id is required. Require user JWT. |
 | RequestCoreInfo | [Empty](#colink-Empty) | [CoreInfo](#colink-CoreInfo) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when request includes jwt, the uri of mq will be returned. |
 | Subscribe | [SubscribeRequest](#colink-SubscribeRequest) | [MQQueueName](#colink-MQQueueName) | Subscribe to changes in the storage. It will let you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
 | Unsubscribe | [MQQueueName](#colink-MQQueueName) | [Empty](#colink-Empty) | Unsubscribe the changes in the storage. Require user JWT. |
-| InterCoreSyncTask | [Task](#colink-Task) | [Empty](#colink-Empty) | InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants&#39; decisions are received and it is the initiator, sync the decisions to other participants. If all participants&#39; decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists. |
+| InterCoreSyncTask | [Task](#colink-Task) | [Empty](#colink-Empty) | InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants&#39; decisions are received and it is the initiator, sync the decisions to other participants. If all participants&#39; decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists. Require guest or user JWT. |
 
  
 
