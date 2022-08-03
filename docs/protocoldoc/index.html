@@ -409,7 +409,7 @@
 </table>
 <p><a name=colink-Jwt></a></p>
 <h3 id=jwt>Jwt</h3>
-<p>JSON Web Token (JWT) that is used to authenticate a user. The JWT the user's privilege, user_id - which is the base64 encoding of the public key - and the expiration time.</p>
+<p>JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the user's privilege, user_id - which is the base64 encoding of the public key - and the expiration time.</p>
 <table>
 <thead>
 <tr>
@@ -738,7 +738,7 @@ The signature will be saved in user's storage and get passed in inter-core commu
 <td>GenerateToken</td>
 <td><a href=#colink-GenerateTokenRequest>GenerateTokenRequest</a></td>
 <td><a href=#colink-Jwt>Jwt</a></td>
-<td>Given a valid JWT and a expiration timestamp, generates a new JWT token with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh an host JWT.</td>
+<td>Given a valid JWT and a expiration timestamp, generates a new JWT with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh a host JWT.</td>
 </tr>
 <tr>
 <td>ImportUser</td>
@@ -1006,8 +1006,8 @@ The signature will be saved in user's storage and get passed in inter-core commu
 <div class=section-index>
 </div>
 <div class="text-muted mt-5 pt-3 border-top">
-Last modified August 3, 2022: <a href=https://github.com/camelop/dds-dev/commit/c39e841ae11e5c00971aeb2585e8dc700e1dbf13>
-c39e841</a>
+Last modified August 3, 2022: <a href=https://github.com/camelop/dds-dev/commit/2480f89e56b7ba0d0b20c962c193b53d6da64c8a>
+2480f89</a>
 </div>
 </div>
 </main>
