@@ -2,6 +2,7 @@
 ---
 title: "Documentation"
 linkTitle: "Documentation"
+draft: true
 weight: 20
 menu:
   main:
