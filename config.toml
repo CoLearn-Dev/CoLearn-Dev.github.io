@@ -159,34 +159,27 @@ enable = false
 
 [params.links]
 # End user relevant links. These will show up on left side of footer and in the community page if you have one.
-[[params.links.user]]
-  name = "User mailing list"
-  url = "https://example.org/mail"
-  icon = "fa fa-envelope"
-  desc = "Discussion and help from your fellow users"
-[[params.links.user]]
-  name ="Twitter"
-  url = "https://example.org/twitter"
-  icon = "fab fa-twitter"
-  desc = "Follow us on Twitter to get the latest news!"
-[[params.links.user]]
-  name = "Stack Overflow"
-  url = "https://example.org/stack"
-  icon = "fab fa-stack-overflow"
-  desc = "Practical questions and curated answers"
+#[[params.links.user]]
+#  name = "User mailing list"
+#  url = "https://groups.google.com/g/colearn-dev"
+#  icon = "fa fa-envelope"
+#  desc = "Discussion and help from your fellow users"
+
 # Developer relevant links. These will show up on right side of footer and in the community page if you have one.
 [[params.links.developer]]
-  name = "GitHub"
-  url = "https://github.com/google/docsy"
-  icon = "fab fa-github"
-  desc = "Development takes place here!"
+  name = "Developer mailing list"
+  url = "https://groups.google.com/g/colearn-dev"
+  icon = "fa fa-envelope"
+  desc = "Discuss development issues around the project"
 [[params.links.developer]]
   name = "Slack"
-  url = "https://example.org/slack"
+  url = "https://join.slack.com/t/colearn-dev/shared_invite/zt-1e8i9p0ww-whYVN1HSY~aBJ3Cq_IzwIA"
   icon = "fab fa-slack"
   desc = "Chat with other project developers"
 [[params.links.developer]]
-  name = "Developer mailing list"
-  url = "https://example.org/mail"
-  icon = "fa fa-envelope"
-  desc = "Discuss development issues around the project"
+  name = "GitHub"
+  url = "https://github.com/CoLearn-Dev"
+  icon = "fab fa-github"
+  desc = "Development takes place here!"
+
+
