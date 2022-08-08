@@ -1,5 +1,5 @@
 baseURL = "https://colearn-dev.github.io"
-title = "CoLearn"
+title = "CoLearn.dev"
 
 # Language settings
 contentDir = "content/en"
@@ -65,7 +65,7 @@ anchor = "smart"
 
 [languages]
 [languages.en]
-title = "CoLearn"
+title = "CoLearn.dev"
 description = "A secure tool for data collaboration"
 languageName ="English"
 # Weight used for sorting.
