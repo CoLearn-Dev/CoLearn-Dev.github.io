@@ -21,6 +21,7 @@
     - [Jwt](#colink-Jwt)
     - [MQQueueName](#colink-MQQueueName)
     - [Participant](#colink-Participant)
+    - [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance)
     - [ReadKeysRequest](#colink-ReadKeysRequest)
     - [StorageEntries](#colink-StorageEntries)
     - [StorageEntry](#colink-StorageEntry)
@@ -199,6 +200,23 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 
 
 
+<a name="colink-ProtocolOperatorInstance"></a>
+
+### ProtocolOperatorInstance
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| instance_id | [string](#string) |  |  |
+| protocol_name | [string](#string) |  |  |
+| user_id | [string](#string) |  |  |
+
+
+
+
+
+
 <a name="colink-ReadKeysRequest"></a>
 
 ### ReadKeysRequest
@@ -346,12 +364,14 @@ The signature will be saved in user&#39;s storage and get passed in inter-core c
 | UpdateEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Updates an entry in CoLink storage. In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored. Creates a new entry with the current timestamp in the key_path field. Sets the latest entry to current timestamp. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | DeleteEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Deletes an entry from CoLink storage. Sets the latest entry to current timestamp, but unlike UpdateEntry, we do not create a new entry with the current timestamp in the key_path field. Therefore the current timestamp points to nothing. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | ReadKeys | [ReadKeysRequest](#colink-ReadKeysRequest) | [StorageEntries](#colink-StorageEntries) | Returns list of entries in CoLink storage whose key_path starts with input prefix. Requires user or host JWT. |
-| CreateTask | [Task](#colink-Task) | [Task](#colink-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Update task status in storage. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id will be included. Require user JWT. |
-| ConfirmTask | [ConfirmTaskRequest](#colink-ConfirmTaskRequest) | [Empty](#colink-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Update task status in storage. The task will be ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT. |
+| CreateTask | [Task](#colink-Task) | [Task](#colink-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Update task status in storage. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id is included. Require user JWT. |
+| ConfirmTask | [ConfirmTaskRequest](#colink-ConfirmTaskRequest) | [Empty](#colink-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Update task status in storage. The task is ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT. |
 | FinishTask | [Task](#colink-Task) | [Empty](#colink-Empty) | A participant finishes a task. Update task status in storage. In request, task_id is required. Require user JWT. |
-| RequestCoreInfo | [Empty](#colink-Empty) | [CoreInfo](#colink-CoreInfo) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when request includes jwt, the uri of mq will be returned. |
-| Subscribe | [SubscribeRequest](#colink-SubscribeRequest) | [MQQueueName](#colink-MQQueueName) | Subscribe to changes in the storage. It will let you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
+| RequestCoreInfo | [Empty](#colink-Empty) | [CoreInfo](#colink-CoreInfo) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when the request includes jwt, the uri of mq is returned. |
+| Subscribe | [SubscribeRequest](#colink-SubscribeRequest) | [MQQueueName](#colink-MQQueueName) | Subscribe to changes in the storage. It lets you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
 | Unsubscribe | [MQQueueName](#colink-MQQueueName) | [Empty](#colink-Empty) | Unsubscribe the changes in the storage. Require user JWT. |
+| StartProtocolOperator | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | Start a protocol operator. It returns a unique instance_id for the newly started operator. In request, protocol_name and user_id are required. In response, only instance_id is included. Require user or host JWT. |
+| StopProtocolOperator | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | [Empty](#colink-Empty) | Stop a protocol operator. Only instance_id is required. Require user or host JWT. |
 | InterCoreSyncTask | [Task](#colink-Task) | [Empty](#colink-Empty) | InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants&#39; decisions are received and it is the initiator, sync the decisions to other participants. If all participants&#39; decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists. Require guest or user JWT. |
 
  
