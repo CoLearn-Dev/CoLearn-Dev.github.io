@@ -21,8 +21,9 @@
     - [Jwt](#colink-Jwt)
     - [MQQueueName](#colink-MQQueueName)
     - [Participant](#colink-Participant)
-    - [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance)
+    - [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId)
     - [ReadKeysRequest](#colink-ReadKeysRequest)
+    - [StartProtocolOperatorRequest](#colink-StartProtocolOperatorRequest)
     - [StorageEntries](#colink-StorageEntries)
     - [StorageEntry](#colink-StorageEntry)
     - [SubscribeRequest](#colink-SubscribeRequest)
@@ -200,17 +201,15 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 
 
 
-<a name="colink-ProtocolOperatorInstance"></a>
+<a name="colink-ProtocolOperatorInstanceId"></a>
 
-### ProtocolOperatorInstance
+### ProtocolOperatorInstanceId
 
 
 
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | instance_id | [string](#string) |  |  |
-| protocol_name | [string](#string) |  |  |
-| user_id | [string](#string) |  |  |
 
 
 
@@ -227,6 +226,23 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 | ----- | ---- | ----- | ----------- |
 | prefix | [string](#string) |  | The prefix of the key_path of the entries to be retrieved. |
 | include_history | [bool](#bool) |  |  |
+
+
+
+
+
+
+<a name="colink-StartProtocolOperatorRequest"></a>
+
+### StartProtocolOperatorRequest
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| protocol_name | [string](#string) |  |  |
+| user_id | [string](#string) |  |  |
+| upgrade | [bool](#bool) |  |  |
 
 
 
@@ -370,8 +386,8 @@ The signature will be saved in user&#39;s storage and get passed in inter-core c
 | RequestCoreInfo | [Empty](#colink-Empty) | [CoreInfo](#colink-CoreInfo) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when the request includes jwt, the uri of mq is returned. |
 | Subscribe | [SubscribeRequest](#colink-SubscribeRequest) | [MQQueueName](#colink-MQQueueName) | Subscribe to changes in the storage. It lets you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
 | Unsubscribe | [MQQueueName](#colink-MQQueueName) | [Empty](#colink-Empty) | Unsubscribe the changes in the storage. Require user JWT. |
-| StartProtocolOperator | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | Start a protocol operator. It returns a unique instance_id for the newly started operator. In request, protocol_name and user_id are required. In response, only instance_id is included. Require user or host JWT. |
-| StopProtocolOperator | [ProtocolOperatorInstance](#colink-ProtocolOperatorInstance) | [Empty](#colink-Empty) | Stop a protocol operator. Only instance_id is required. Require user or host JWT. |
+| StartProtocolOperator | [StartProtocolOperatorRequest](#colink-StartProtocolOperatorRequest) | [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId) | Start a protocol operator. It returns a unique instance_id for the newly started operator. In request, protocol_name and user_id are required. In response, instance_id is included. Require user or host JWT. |
+| StopProtocolOperator | [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId) | [Empty](#colink-Empty) | Stop a protocol operator. In request, instance_id is required. Require user or host JWT. |
 | InterCoreSyncTask | [Task](#colink-Task) | [Empty](#colink-Empty) | InterCore RPC. Sync a task. If it receives a task with unknown task_id, then create this task in storage and send task status to MQ. Otherwise, update decisions in storage. If all participants&#39; decisions are received and it is the initiator, sync the decisions to other participants. If all participants&#39; decisions are received, send task status to MQ. The task status in the request should be ignored even if it exists. Require guest or user JWT. |
 
  
