@@ -19,6 +19,11 @@
     - [Empty](#colink-Empty)
     - [GenerateTokenRequest](#colink-GenerateTokenRequest)
     - [Jwt](#colink-Jwt)
+    - [ListOfBool](#colink-ListOfBool)
+    - [ListOfBytes](#colink-ListOfBytes)
+    - [ListOfFloat](#colink-ListOfFloat)
+    - [ListOfInt64](#colink-ListOfInt64)
+    - [ListOfString](#colink-ListOfString)
     - [MQQueueName](#colink-MQQueueName)
     - [Participant](#colink-Participant)
     - [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId)
@@ -164,6 +169,81 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 | Field | Type | Label | Description |
 | ----- | ---- | ----- | ----------- |
 | jwt | [string](#string) |  |  |
+
+
+
+
+
+
+<a name="colink-ListOfBool"></a>
+
+### ListOfBool
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| list | [bool](#bool) | repeated |  |
+
+
+
+
+
+
+<a name="colink-ListOfBytes"></a>
+
+### ListOfBytes
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| list | [bytes](#bytes) | repeated |  |
+
+
+
+
+
+
+<a name="colink-ListOfFloat"></a>
+
+### ListOfFloat
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| list | [float](#float) | repeated |  |
+
+
+
+
+
+
+<a name="colink-ListOfInt64"></a>
+
+### ListOfInt64
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| list | [int64](#int64) | repeated |  |
+
+
+
+
+
+
+<a name="colink-ListOfString"></a>
+
+### ListOfString
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| list | [string](#string) | repeated |  |
 
 
 
