@@ -14,7 +14,6 @@
     - [CoLinkInternalTaskIDList](#colink-CoLinkInternalTaskIDList)
     - [CoLinkInternalTaskIDWithKeyPath](#colink-CoLinkInternalTaskIDWithKeyPath)
     - [ConfirmTaskRequest](#colink-ConfirmTaskRequest)
-    - [CoreInfo](#colink-CoreInfo)
     - [Decision](#colink-Decision)
     - [Empty](#colink-Empty)
     - [GenerateTokenRequest](#colink-GenerateTokenRequest)
@@ -28,6 +27,7 @@
     - [Participant](#colink-Participant)
     - [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId)
     - [ReadKeysRequest](#colink-ReadKeysRequest)
+    - [RequestInfoResponse](#colink-RequestInfoResponse)
     - [StartProtocolOperatorRequest](#colink-StartProtocolOperatorRequest)
     - [StorageEntries](#colink-StorageEntries)
     - [StorageEntry](#colink-StorageEntry)
@@ -90,22 +90,6 @@
 | ----- | ---- | ----- | ----------- |
 | task_id | [string](#string) |  | The id of this task. |
 | decision | [Decision](#colink-Decision) |  | The decision of this task. |
-
-
-
-
-
-
-<a name="colink-CoreInfo"></a>
-
-### CoreInfo
-
-
-
-| Field | Type | Label | Description |
-| ----- | ---- | ----- | ----------- |
-| mq_uri | [string](#string) |  | The URI of MQ. |
-| core_public_key | [bytes](#bytes) |  | The public key of the core, serialized in compact (default) form. |
 
 
 
@@ -312,6 +296,23 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 
 
 
+<a name="colink-RequestInfoResponse"></a>
+
+### RequestInfoResponse
+
+
+
+| Field | Type | Label | Description |
+| ----- | ---- | ----- | ----------- |
+| mq_uri | [string](#string) |  | The URI of MQ. |
+| core_public_key | [bytes](#bytes) |  | The public key of the core, serialized in compact (default) form. |
+| requestor_ip | [string](#string) |  | The IP address of the requestor. |
+
+
+
+
+
+
 <a name="colink-StartProtocolOperatorRequest"></a>
 
 ### StartProtocolOperatorRequest
@@ -463,7 +464,7 @@ The signature will be saved in user&#39;s storage and get passed in inter-core c
 | CreateTask | [Task](#colink-Task) | [Task](#colink-Task) | An initiator creates a task. Generate a task_id for this task. Represent user(initiator) to sign a decision for this task. Sync this task with other participants. Update task status in storage. In request, protocol_name, protocol_param, participants are required. parent_task is optional. In response, only task_id is included. Require user JWT. |
 | ConfirmTask | [ConfirmTaskRequest](#colink-ConfirmTaskRequest) | [Empty](#colink-Empty) | A participant confirms a task. Represent user to sign a decision for this task. Sync the decision to the initiator. Update task status in storage. The task is ignored if is_approved and is_rejected are both false in the decision. In request, task_id is required. Require user JWT. |
 | FinishTask | [Task](#colink-Task) | [Empty](#colink-Empty) | A participant finishes a task. Update task status in storage. In request, task_id is required. Require user JWT. |
-| RequestCoreInfo | [Empty](#colink-Empty) | [CoreInfo](#colink-CoreInfo) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. JWT is optional: when the request includes jwt, the uri of mq is returned. |
+| RequestInfo | [Empty](#colink-Empty) | [RequestInfoResponse](#colink-RequestInfoResponse) | Request the information of the core, including the URI of MQ, and the public key of the core. Return MQ Information optionally and core public key for this user. Also return the IP address of the requestor. JWT is optional: when the request includes jwt, the uri of mq is returned. |
 | Subscribe | [SubscribeRequest](#colink-SubscribeRequest) | [MQQueueName](#colink-MQQueueName) | Subscribe to changes in the storage. It lets you subscribe to all changes of key_name in storage since start_timestamp. The subscription message is formatted in SubscriptionMessage. Require user JWT. |
 | Unsubscribe | [MQQueueName](#colink-MQQueueName) | [Empty](#colink-Empty) | Unsubscribe the changes in the storage. Require user JWT. |
 | StartProtocolOperator | [StartProtocolOperatorRequest](#colink-StartProtocolOperatorRequest) | [ProtocolOperatorInstanceId](#colink-ProtocolOperatorInstanceId) | Start a protocol operator. It returns a unique instance_id for the newly started operator. In request, protocol_name and user_id are required. In response, instance_id is included. Require user or host JWT. |
