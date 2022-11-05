@@ -307,6 +307,7 @@ JSON Web Token (JWT) that is used to authenticate a user. The JWT encodes the us
 | mq_uri | [string](#string) |  | The URI of MQ. |
 | core_public_key | [bytes](#bytes) |  | The public key of the core, serialized in compact (default) form. |
 | requestor_ip | [string](#string) |  | The IP address of the requestor. |
+| version | [string](#string) |  | The version of the core. |
 
 
 
