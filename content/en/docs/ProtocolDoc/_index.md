@@ -138,6 +138,7 @@ The old token is contained in the header of this request, under the &#39;authori
 | ----- | ---- | ----- | ----------- |
 | expiration_time | [int64](#int64) |  | The new expiration time for the token, in unix timestamp format. |
 | privilege | [string](#string) |  | The privilege of the generated jwt. |
+| user_consent | [UserConsent](#colink-UserConsent) |  | Allows users to generate a new JWT using user consent with a signature without an old JWT. |
 
 
 
@@ -455,7 +456,7 @@ The signature will be saved in user&#39;s storage and get passed in inter-core c
 
 | Method Name | Request Type | Response Type | Description |
 | ----------- | ------------ | ------------- | ------------|
-| GenerateToken | [GenerateTokenRequest](#colink-GenerateTokenRequest) | [Jwt](#colink-Jwt) | Given a valid JWT and a expiration timestamp, generates a new JWT with the expiration time set to the input timestamp. Requires user jwt. You cannot refresh a host JWT. |
+| GenerateToken | [GenerateTokenRequest](#colink-GenerateTokenRequest) | [Jwt](#colink-Jwt) | Given a valid JWT or valid signature and an expiration timestamp, generates a new JWT with the expiration time set to the input timestamp. Requires user jwt or user consent with signature. You cannot refresh a host JWT. |
 | ImportUser | [UserConsent](#colink-UserConsent) | [Jwt](#colink-Jwt) | Generates a JWT from a user with a public/secret key pair. The generated JWT specifies the user&#39;s privilege as a user, contains their user_id, which is a base64 encoding of the provided public key. Requires host JWT. |
 | CreateEntry | [StorageEntry](#colink-StorageEntry) | [StorageEntry](#colink-StorageEntry) | Creates an entry in CoLink storage. In the entry passed in to the call, the `key_name` field must be nonempty. Every other field is is ignored. Requires user or host JWT. Returns a key_path with current timestamp included. |
 | ReadEntries | [StorageEntries](#colink-StorageEntries) | [StorageEntries](#colink-StorageEntries) | Retrieves entries from CoLink storage. One and only one field among `key_name` and `key_path` is nonempty. If both are nonempty, an error is returned. If key_name is nonempty, returns the latest version of the entry with that key name. This is done by first obtaining the timestamp representing the latest version of the entry, and then retrieving the entry with that timestamp by including the timestamp in key_path. If key_path is nonempty, returns the entry with the corresponding key path. If you&#39;re looking for a specific version of an entry, use specify the timestamp inside the `key_path` field. In both cases, the key_name field is empty in the returned StorageEntry. key_path and payload are nonempty. If an entry is not found. An error is returned. Note that the returned order of the entries is NOT guaranteed to be the same as the order of the input. Requires user or host JWT. |
